@@ -7,20 +7,31 @@ What has been changed:
 - stripped all WTL/ATL dependencies
 - stripped GUI (obviously)
 
+Exports:
+- iatsearch  gets iatstart+size
+- iatfix     does iat fixing
+
 TODO:
-- export IAT AutoSearch function
 - export a ShowInvalidThunks function
 - export a CutThunks function
 
 Usage:
 
 typedef int (*IATFIX) (DWORD_PTR, DWORD, DWORD, WCHAR*, WCHAR*);
+typedef int (*IATSEARCH) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
 HMODULE lib = LoadLibrary(_T("scylla_iatfix"));
 IATFIX iatfix = (IATFIX) GetProcAddress(lib, "scylla_iatfix");
+IATSEARCH iatsearch = (IATSEARCH) GetProcAddress(lib, "scylla_iatsearch");
 
-int fix = iatfix(iatStart, iatSize, pid, dumpFilePath, iatFixFilePath);
+DWORD iatStart = 0xDEADBEEF;
+DWORD iatSize = 0xDEADBEEF;
+
+int search = iatsearch(pid, iatStart, iatSize, eip, false); //false = bool advancedsearch
+int fix = iatfix(iatStart, iatSize, pid, UnpackFileName, IatFixFileName);
 
 returns:
 const BYTE SCY_ERROR_SUCCESS = 0;
 const BYTE SCY_ERROR_PROCOPEN = -1;
 const BYTE SCY_ERROR_IATWRITE = -2;
+const BYTE SCY_ERROR_IATSEARCH = -3;
+const BYTE SCY_ERROR_IATNOTFOUND = -4;
