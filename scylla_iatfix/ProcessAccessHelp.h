@@ -7,7 +7,7 @@
 /************************************************************************/
 /* distorm                                                              */
 /************************************************************************/
-//#include <distorm.h>
+#include "distorm.h"
 
 // The number of the array of instructions the decoder function will use to return the disassembled instructions.
 // Play with this value for performance...
@@ -98,7 +98,6 @@ public:
 
 
 	//for decomposer
-    /*
 	static _DInst decomposerResult[MAX_INSTRUCTIONS];
 	static unsigned int decomposerInstructionsCount;
 	static _CodeInfo decomposerCi;
@@ -111,7 +110,6 @@ public:
 #else
 	static const _DecodeType dt = Decode32Bits;
 #endif
-    */
 
 	/*
 	 * Open a new process handle

@@ -14,6 +14,12 @@ DWORD_PTR ProcessAccessHelp::maxValidAddress = 0;
 std::vector<ModuleInfo> ProcessAccessHelp::moduleList; //target process module list
 std::vector<ModuleInfo> ProcessAccessHelp::ownModuleList; //own module list
 
+_DInst ProcessAccessHelp::decomposerResult[MAX_INSTRUCTIONS];
+unsigned int ProcessAccessHelp::decomposerInstructionsCount = 0;
+_CodeInfo ProcessAccessHelp::decomposerCi = {0};
+
+_DecodedInst  ProcessAccessHelp::decodedInstructions[MAX_INSTRUCTIONS];
+unsigned int  ProcessAccessHelp::decodedInstructionsCount = 0;
 
 BYTE ProcessAccessHelp::fileHeaderFromDisk[PE_HEADER_BYTES_COUNT];
 
@@ -229,6 +235,73 @@ bool ProcessAccessHelp::readMemoryFromProcess(DWORD_PTR address, SIZE_T size, LP
 	return returnValue;
 }
 
+bool ProcessAccessHelp::decomposeMemory(BYTE * dataBuffer, SIZE_T bufferSize, DWORD_PTR startAddress)
+{
+
+	ZeroMemory(&decomposerCi, sizeof(_CodeInfo));
+	decomposerCi.code = dataBuffer;
+	decomposerCi.codeLen = (int)bufferSize;
+	decomposerCi.dt = dt;
+	decomposerCi.codeOffset = startAddress;
+
+	decomposerInstructionsCount = 0;
+
+	if (distorm_decompose(&decomposerCi, decomposerResult, sizeof(decomposerResult)/sizeof(decomposerResult[0]), &decomposerInstructionsCount) == DECRES_INPUTERR)
+	{
+#ifdef DEBUG_COMMENTS
+		Scylla::debugLog.log(L"decomposeMemory :: distorm_decompose == DECRES_INPUTERR");
+#endif
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+bool ProcessAccessHelp::disassembleMemory(BYTE * dataBuffer, SIZE_T bufferSize, DWORD_PTR startOffset)
+{
+	// Holds the result of the decoding.
+	_DecodeResult res;
+
+	// next is used for instruction's offset synchronization.
+	// decodedInstructionsCount holds the count of filled instructions' array by the decoder.
+
+	decodedInstructionsCount = 0;
+
+	_OffsetType offset = startOffset;
+
+	res = distorm_decode(offset, dataBuffer, (int)bufferSize, dt, decodedInstructions, MAX_INSTRUCTIONS, &decodedInstructionsCount);
+
+/*	for (unsigned int i = 0; i < decodedInstructionsCount; i++) {
+#ifdef SUPPORT_64BIT_OFFSET
+		printf("%0*I64x (%02d) %-24s %s%s%s\n", dt != Decode64Bits ? 8 : 16, decodedInstructions[i].offset, decodedInstructions[i].size, (char*)decodedInstructions[i].instructionHex.p, (char*)decodedInstructions[i].mnemonic.p, decodedInstructions[i].operands.length != 0 ? " " : "", (char*)decodedInstructions[i].operands.p);
+#else
+		printf("%08x (%02d) %-24s %s%s%s\n", decodedInstructions[i].offset, decodedInstructions[i].size, (char*)decodedInstructions[i].instructionHex.p, (char*)decodedInstructions[i].mnemonic.p, decodedInstructions[i].operands.length != 0 ? " " : "", (char*)decodedInstructions[i].operands.p);
+#endif
+
+	}*/
+
+	if (res == DECRES_INPUTERR)
+	{
+#ifdef DEBUG_COMMENTS
+		Scylla::debugLog.log(L"disassembleMemory :: res == DECRES_INPUTERR");
+#endif
+		return false;
+	}
+	else if (res == DECRES_SUCCESS)
+	{
+		//printf("disassembleMemory :: res == DECRES_SUCCESS\n");
+		return true;
+	}
+	else
+	{
+#ifdef DEBUG_COMMENTS
+		Scylla::debugLog.log(L"disassembleMemory :: res == %d", res);
+#endif
+		return false;
+	}
+}
 
 DWORD_PTR ProcessAccessHelp::findPattern(DWORD_PTR startOffset, DWORD size, BYTE * pattern, const char * mask)
 {
