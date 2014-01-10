@@ -50,11 +50,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SCYLLA_IATFIX_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>PSAPI.LIB;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>distorm.lib;PSAPI.LIB;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,6 +82,8 @@
     <ClInclude Include="ApiReader.h" />
     <ClInclude Include="Architecture.h" />
     <ClInclude Include="DeviceNameResolver.h" />
+    <ClInclude Include="distorm.h" />
+    <ClInclude Include="IATSearch.h" />
     <ClInclude Include="ImportRebuilder.h" />
     <ClInclude Include="NativeWinApi.h" />
     <ClInclude Include="PeParser.h" />
@@ -105,6 +108,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="IATSearch.cpp" />
     <ClCompile Include="ImportRebuilder.cpp" />
     <ClCompile Include="NativeWinApi.cpp" />
     <ClCompile Include="PeParser.cpp" />

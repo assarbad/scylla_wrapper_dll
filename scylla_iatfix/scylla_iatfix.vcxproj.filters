@@ -60,6 +60,12 @@
     <ClInclude Include="ProcessLister.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="IATSearch.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="distorm.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -99,6 +105,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="ProcessLister.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="IATSearch.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
