@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ApiReader.h"
 #include "ProcessLister.h"
 #include "ImportRebuilder.h"
+#include "IATSearch.h"
 
-// Dies ist das Beispiel einer exportierten Funktion.
 extern "C" SCYLLA_IATFIX_API int scylla_iatfix(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, WCHAR* dumpFile, WCHAR* iatFixFile)
 {
     //some things we need
@@ -82,4 +82,89 @@ extern "C" SCYLLA_IATFIX_API int scylla_iatfix(DWORD_PTR iatAddr, DWORD iatSize,
 	{
         return SCY_ERROR_IATWRITE;
 	}
+}
+
+extern "C" SCYLLA_IATFIX_API int scylla_iatsearch(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart = 0xDEADBEEF, bool advancedSearch = false)
+{
+	ApiReader apiReader;
+	DWORD_PTR searchAddress = 0;
+	DWORD_PTR addressIAT = 0, addressIATAdv = 0;
+	DWORD sizeIAT = 0, sizeIATAdv = 0;
+	IATSearch iatSearch;
+    ProcessLister processLister;
+
+    //need to find correct process by PID
+    Process *processPtr = 0;
+    std::vector<Process>& processList = processLister.getProcessListSnapshot();
+    for(std::vector<Process>::iterator it = processList.begin(); it != processList.end(); ++it) {
+        if(it->PID == pid) processPtr = &(*it);
+    }
+
+    if(!processPtr) return SCY_ERROR_PROCOPEN;
+
+    //init process access
+	if (ProcessAccessHelp::hProcess != 0)
+	{
+		ProcessAccessHelp::closeProcessHandle();
+		apiReader.clearAll();
+	}
+
+	if (!ProcessAccessHelp::openProcessHandle(processPtr->PID))
+	{
+		return SCY_ERROR_PROCOPEN;
+	}
+
+	ProcessAccessHelp::getProcessModules(processPtr->PID, ProcessAccessHelp::moduleList);
+
+	apiReader.readApisFromModuleList();
+
+	ProcessAccessHelp::selectedModule = 0;
+	ProcessAccessHelp::targetSizeOfImage = processPtr->imageSize;
+	ProcessAccessHelp::targetImageBase = processPtr->imageBase;  //important !!
+	ProcessAccessHelp::getSizeOfImageCurrentProcess();
+	processPtr->imageSize = (DWORD)ProcessAccessHelp::targetSizeOfImage;
+
+    //now actually do some searching
+    if(searchStart!=0xDEADBEEF)
+	{
+		searchAddress = searchStart;
+		if (searchAddress)
+		{
+
+			if (advancedSearch)
+			{
+				if (iatSearch.searchImportAddressTableInProcess(searchAddress, &addressIATAdv, &sizeIATAdv, true))
+				{
+					//Scylla::windowLog.log(L"IAT Search Advanced: IAT VA " PRINTF_DWORD_PTR_FULL L" RVA " PRINTF_DWORD_PTR_FULL L" Size 0x%04X (%d)", addressIATAdv, addressIATAdv - ProcessAccessHelp::targetImageBase, sizeIATAdv, sizeIATAdv);
+
+                    iatStart = addressIATAdv;
+                    iatSize = sizeIATAdv;
+
+                    return SCY_ERROR_SUCCESS;
+				}
+				else
+				{
+					return SCY_ERROR_IATNOTFOUND;
+				}
+			}
+
+
+			if (iatSearch.searchImportAddressTableInProcess(searchAddress, &addressIAT, &sizeIAT, false))
+			{
+				//Scylla::windowLog.log(L"IAT Search Normal: IAT VA " PRINTF_DWORD_PTR_FULL L" RVA " PRINTF_DWORD_PTR_FULL L" Size 0x%04X (%d)", addressIAT, addressIAT - ProcessAccessHelp::targetImageBase, sizeIAT, sizeIAT);
+
+                iatStart = addressIAT;
+                iatSize = sizeIAT;
+
+                return SCY_ERROR_SUCCESS;
+			}
+			else
+			{
+				return SCY_ERROR_IATNOTFOUND;
+			}
+			
+		}
+	} else {
+        return SCY_ERROR_IATSEARCH;
+    }
 }

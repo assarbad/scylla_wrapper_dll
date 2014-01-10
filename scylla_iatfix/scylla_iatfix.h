@@ -25,5 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const BYTE SCY_ERROR_SUCCESS = 0;
 const BYTE SCY_ERROR_PROCOPEN = -1;
 const BYTE SCY_ERROR_IATWRITE = -2;
+const BYTE SCY_ERROR_IATSEARCH = -3;
+const BYTE SCY_ERROR_IATNOTFOUND = -4;
 
 extern "C" SCYLLA_IATFIX_API int scylla_iatfix(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, WCHAR* dumpFile, WCHAR* iatFixFile);
+extern "C" SCYLLA_IATFIX_API int scylla_iatsearch(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch);
