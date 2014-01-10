@@ -3,7 +3,6 @@
 #include "Architecture.h"
 #include "SystemInformation.h"
 #include "StringConversion.h"
-#include "ProcessAccessHelp.h"
 
 stdext::hash_multimap<DWORD_PTR, ApiInfo *> ApiReader::apiList; //api look up table
 std::map<DWORD_PTR, ImportModuleThunk> *  ApiReader::moduleThunkList; //store found apis
