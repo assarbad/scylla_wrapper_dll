@@ -110,15 +110,11 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
     }
 }
 
-extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, WCHAR* dumpFile)
+extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid)
 {
     //some things we need
 	ApiReader apiReader;
-    WCHAR dumpedFilePath[MAX_PATH];
-    WCHAR fixedFilePath[MAX_PATH];
     ProcessLister processLister;
-
-    wcscpy_s(dumpedFilePath, dumpFile);
 
     //need to find correct process by PID
     Process *processPtr = 0;

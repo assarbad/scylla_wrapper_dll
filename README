@@ -11,7 +11,7 @@ Exports:
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
-int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, WCHAR* dumpFile);
+int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid);
 //are all imports valid?
 bool scylla_importsValid();
 //fix the dump
@@ -30,7 +30,7 @@ TODO:
 Usage:
 
 typedef int (*SEARCHIAT) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
-typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD, WCHAR*);
+typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD);
 typedef bool (*IMPORTSVALID) ();
 typedef int (*FIXDUMP) (WCHAR*, WCHAR*);
 
@@ -45,6 +45,6 @@ DWORD iatSize = 0xDEADBEEF;
 
 int search = searchIAT(fdProcessInfo->dwProcessId, iatStart, iatSize, eip, false);
 
-if(search==0) int imports = getImports(iatStart, iatSize, pid, dumpFileName);
+if(search==0) int imports = getImports(iatStart, iatSize, pid);
 bool valid = importsValid();
 if(valid) int fix = fixDump(dumpFileName, IatFixFileName);

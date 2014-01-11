@@ -29,6 +29,6 @@ const BYTE SCY_ERROR_IATSEARCH = -3;
 const BYTE SCY_ERROR_IATNOTFOUND = -4;
 
 extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch);
-extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, WCHAR* dumpFile);
+extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid);
 extern "C" SCYLLA_IATFIX_API bool scylla_importsValid();
 extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile);
