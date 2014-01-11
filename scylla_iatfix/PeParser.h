@@ -2,7 +2,22 @@
 
 #include <windows.h>
 #include <vector>
-//#include "DumpSectionGui.h"
+
+class PeSection
+{
+public:
+	WCHAR name[IMAGE_SIZEOF_SHORT_NAME + 1];
+	DWORD_PTR virtualAddress;
+	DWORD  virtualSize;
+	DWORD  rawAddress;
+	DWORD  rawSize;
+	DWORD characteristics;
+
+	bool isDumped;
+
+    //highlight big virtual sizes -> anti-dump protection
+	bool highlightVirtualSize() { return (virtualSize > 0x2000000); };
+};
 
 class PeFileSection {
 public:
@@ -56,6 +71,8 @@ public:
 	void alignAllSectionHeaders();
 	void fixPeHeader();
 	void setDefaultFileAlignment();
+	bool dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath);
+	bool dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath, std::vector<PeSection> & sectionList);
 
 	void setEntryPointVa(DWORD_PTR entryPoint);
 	void setEntryPointRva(DWORD entryPoint);

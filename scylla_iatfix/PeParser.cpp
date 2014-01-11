@@ -1059,6 +1059,49 @@ void PeParser::alignAllSectionHeaders()
 	std::sort(listPeSection.begin(), listPeSection.end(), PeFileSectionSortByVirtualAddress); //sort by VirtualAddress ascending
 }
 
+bool PeParser::dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath)
+{
+	moduleBaseAddress = modBase;
+
+	if (readPeSectionsFromProcess())
+	{
+		setDefaultFileAlignment();
+
+		setEntryPointVa(entryPoint);
+
+		alignAllSectionHeaders();
+		fixPeHeader();
+
+		getFileOverlay();
+
+		return savePeFileToDisk(dumpFilePath);
+	}
+	
+	return false;
+}
+
+bool PeParser::dumpProcess(DWORD_PTR modBase, DWORD_PTR entryPoint, const WCHAR * dumpFilePath, std::vector<PeSection> & sectionList)
+{
+	if (listPeSection.size() == sectionList.size())
+	{
+		for (int i = (getNumberOfSections() - 1); i >= 0; i--)
+		{
+			if (!sectionList[i].isDumped)
+			{
+				listPeSection.erase(listPeSection.begin() + i);
+				setNumberOfSections(getNumberOfSections() - 1);
+			}
+			else
+			{
+				listPeSection[i].sectionHeader.Misc.VirtualSize = sectionList[i].virtualSize;
+				listPeSection[i].sectionHeader.SizeOfRawData = sectionList[i].rawSize;
+				listPeSection[i].sectionHeader.Characteristics = sectionList[i].characteristics;
+			}
+		}
+	}
+
+	return dumpProcess(modBase, entryPoint, dumpFilePath);
+}
 
 void PeParser::setEntryPointVa(DWORD_PTR entryPoint)
 {
