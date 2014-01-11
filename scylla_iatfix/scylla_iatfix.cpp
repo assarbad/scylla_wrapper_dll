@@ -257,3 +257,49 @@ extern "C" SCYLLA_IATFIX_API bool scylla_dumpProcessA(DWORD_PTR pid, const char 
 		return scylla_dumpProcessW(pid, 0, imagebase, entrypoint, fileResultW);
 	}
 }
+
+extern "C" SCYLLA_IATFIX_API bool scylla_rebuildFileW(const WCHAR * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup)
+{
+
+	if (createBackup)
+	{
+		if (!ProcessAccessHelp::createBackupFile(fileToRebuild))
+		{
+			return FALSE;
+		}
+	}
+
+	PeParser peFile(fileToRebuild, true);
+	if (peFile.readPeSectionsFromFile())
+	{
+		peFile.setDefaultFileAlignment();
+		if (removeDosStub)
+		{
+			peFile.removeDosStub();
+		}
+		peFile.alignAllSectionHeaders();
+		peFile.fixPeHeader();
+
+		if (peFile.savePeFileToDisk(fileToRebuild))
+		{
+			if (updatePeHeaderChecksum)
+			{
+				PeParser::updatePeHeaderChecksum(fileToRebuild, (DWORD)ProcessAccessHelp::getFileSize(fileToRebuild));
+			}
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+extern "C" SCYLLA_IATFIX_API bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup)
+{
+	WCHAR fileToRebuildW[MAX_PATH];
+	if (MultiByteToWideChar(CP_ACP, 0, fileToRebuild, -1, fileToRebuildW, _countof(fileToRebuildW)) == 0)
+	{
+		return FALSE;
+	}
+
+	return scylla_rebuildFileW(fileToRebuildW, removeDosStub, updatePeHeaderChecksum, createBackup);
+}
