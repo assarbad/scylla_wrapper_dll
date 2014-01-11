@@ -38,17 +38,17 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
     Process *processPtr = 0;
     std::vector<Process>& processList = processLister.getProcessListSnapshot();
     for(std::vector<Process>::iterator it = processList.begin(); it != processList.end(); ++it) {
-        if(it->PID == pid) processPtr = &(*it);
+        if(it->PID == pid) {
+            processPtr = &(*it);
+            break;
+        }
     }
 
     if(!processPtr) return SCY_ERROR_PROCOPEN;
 
     //init process access
-	if (ProcessAccessHelp::hProcess != 0)
-	{
-		ProcessAccessHelp::closeProcessHandle();
-		apiReader.clearAll();
-	}
+	ProcessAccessHelp::closeProcessHandle();
+	apiReader.clearAll();
 
 	if (!ProcessAccessHelp::openProcessHandle(processPtr->PID))
 	{
@@ -57,13 +57,13 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
 
 	ProcessAccessHelp::getProcessModules(processPtr->PID, ProcessAccessHelp::moduleList);
 
+	ProcessAccessHelp::selectedModule = 0;
+	ProcessAccessHelp::targetSizeOfImage = ProcessAccessHelp::getSizeOfImageProcess(ProcessAccessHelp::hProcess, ProcessAccessHelp::targetImageBase);
+	ProcessAccessHelp::targetImageBase = processPtr->imageBase;
+
 	apiReader.readApisFromModuleList();
 
-	ProcessAccessHelp::selectedModule = 0;
-	ProcessAccessHelp::targetSizeOfImage = processPtr->imageSize;
-	ProcessAccessHelp::targetImageBase = processPtr->imageBase;  //important !!
-	ProcessAccessHelp::getSizeOfImageCurrentProcess();
-	processPtr->imageSize = (DWORD)ProcessAccessHelp::targetSizeOfImage;
+    int retVal = SCY_ERROR_IATNOTFOUND; 
 
     //now actually do some searching
     if(searchStart!=0xDEADBEEF)
@@ -81,11 +81,7 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
                     iatStart = addressIATAdv;
                     iatSize = sizeIATAdv;
 
-                    return SCY_ERROR_SUCCESS;
-				}
-				else
-				{
-					return SCY_ERROR_IATNOTFOUND;
+                    retVal = SCY_ERROR_SUCCESS;
 				}
 			}
 
@@ -97,17 +93,19 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
                 iatStart = addressIAT;
                 iatSize = sizeIAT;
 
-                return SCY_ERROR_SUCCESS;
-			}
-			else
-			{
-				return SCY_ERROR_IATNOTFOUND;
+                retVal = SCY_ERROR_SUCCESS;
 			}
 			
 		}
 	} else {
         return SCY_ERROR_IATSEARCH;
     }
+
+    processList.clear();
+    ProcessAccessHelp::closeProcessHandle();
+    apiReader.clearAll();
+
+    return retVal;
 }
 
 extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid)
@@ -120,17 +118,17 @@ extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatS
     Process *processPtr = 0;
     std::vector<Process>& processList = processLister.getProcessListSnapshot();
     for(std::vector<Process>::iterator it = processList.begin(); it != processList.end(); ++it) {
-        if(it->PID == pid) processPtr = &(*it);
+        if(it->PID == pid) {
+            processPtr = &(*it);
+            break;
+        }
     }
 
     if(!processPtr) return SCY_ERROR_PROCOPEN;
 
     //init process access
-	if (ProcessAccessHelp::hProcess != 0)
-	{
-		ProcessAccessHelp::closeProcessHandle();
-		apiReader.clearAll();
-	}
+	ProcessAccessHelp::closeProcessHandle();
+	apiReader.clearAll();
 
 	if (!ProcessAccessHelp::openProcessHandle(processPtr->PID))
 	{
@@ -139,14 +137,11 @@ extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatS
 
 	ProcessAccessHelp::getProcessModules(processPtr->PID, ProcessAccessHelp::moduleList);
 
-	apiReader.readApisFromModuleList();
-
 	ProcessAccessHelp::selectedModule = 0;
-	ProcessAccessHelp::targetSizeOfImage = processPtr->imageSize;
-	ProcessAccessHelp::targetImageBase = processPtr->imageBase;  //important !!
-	ProcessAccessHelp::getSizeOfImageCurrentProcess();
-	processPtr->imageSize = (DWORD)ProcessAccessHelp::targetSizeOfImage;
-	//processPtr->entryPoint = ProcessAccessHelp::getEntryPointFromFile(processPtr->fullPath);
+	ProcessAccessHelp::targetSizeOfImage = ProcessAccessHelp::getSizeOfImageProcess(ProcessAccessHelp::hProcess, ProcessAccessHelp::targetImageBase);
+	ProcessAccessHelp::targetImageBase = processPtr->imageBase;
+
+	apiReader.readApisFromModuleList();
 
     //parse IAT
     apiReader.readAndParseIAT(iatAddr, iatSize, moduleList);
@@ -202,5 +197,63 @@ extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFi
 	else
 	{
         return SCY_ERROR_IATWRITE;
+	}
+}
+
+BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
+{
+	PeParser * peFile = 0;
+
+	if (fileToDump)
+	{
+		peFile = new PeParser(fileToDump, true);
+	}
+	else
+	{
+		peFile = new PeParser(imagebase, true);
+	}
+
+	return peFile->dumpProcess(imagebase, entrypoint, fileResult);
+}
+
+extern "C" SCYLLA_IATFIX_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
+{
+	if (ProcessAccessHelp::openProcessHandle((DWORD)pid))
+	{
+		return DumpProcessW(fileToDump, imagebase, entrypoint, fileResult);
+	}
+	else
+	{
+		return FALSE;
+	}	
+}
+
+extern "C" SCYLLA_IATFIX_API bool scylla_dumpProcessA(DWORD_PTR pid, const char * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const char * fileResult)
+{
+	WCHAR fileToDumpW[MAX_PATH];
+	WCHAR fileResultW[MAX_PATH];
+
+	if (fileResult == 0)
+	{
+		return FALSE;
+	}
+
+	if (MultiByteToWideChar(CP_ACP, 0, fileResult, -1, fileResultW, _countof(fileResultW)) == 0)
+	{
+		return FALSE;
+	}
+
+	if (fileToDump != 0)
+	{
+		if (MultiByteToWideChar(CP_ACP, 0, fileToDump, -1, fileToDumpW, _countof(fileToDumpW)) == 0)
+		{
+			return FALSE;
+		}
+
+		return scylla_dumpProcessW(pid, fileToDumpW, imagebase, entrypoint, fileResultW);
+	}
+	else
+	{
+		return scylla_dumpProcessW(pid, 0, imagebase, entrypoint, fileResultW);
 	}
 }
