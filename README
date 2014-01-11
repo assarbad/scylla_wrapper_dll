@@ -26,8 +26,10 @@ IATSEARCH iatsearch = (IATSEARCH) GetProcAddress(lib, "scylla_iatsearch");
 DWORD iatStart = 0xDEADBEEF;
 DWORD iatSize = 0xDEADBEEF;
 
+//eip = where to start search, OEP preferably
 int search = iatsearch(pid, iatStart, iatSize, eip, false); //false = bool advancedsearch
-int fix = iatfix(iatStart, iatSize, pid, UnpackFileName, IatFixFileName);
+//dumpFilePath = path to dumped exe, iatFixFilePath = where to write fixed exe
+int fix = iatfix(iatStart, iatSize, pid, dumpFilePath, iatFixFilePath);
 
 returns:
 const BYTE SCY_ERROR_SUCCESS = 0;
