@@ -7,7 +7,7 @@
 
 class ImportRebuilder : public PeParser {
 public:
-	ImportRebuilder(const WCHAR * file) : PeParser(file, true)
+	ImportRebuilder(const WCHAR * file, const WCHAR* sectionName) : PeParser(file, true)
 	{
 		pImportDescriptor = 0;
 		pThunkData = 0;
@@ -19,6 +19,7 @@ public:
 		importSectionIndex = 0;
 		useOFT = false;
 		sizeOfOFTArray = 0;
+        this->sectionName = (WCHAR*)sectionName;
 	}
 
 	bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
@@ -32,6 +33,7 @@ private:
 	size_t sizeOfImportSection;
 	size_t sizeOfApiAndModuleNames;
 	size_t importSectionIndex;
+    WCHAR* sectionName;
 
 	//OriginalFirstThunk Array in Import Section
 	size_t sizeOfOFTArray;

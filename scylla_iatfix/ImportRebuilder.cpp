@@ -70,7 +70,7 @@ bool ImportRebuilder::buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk>
 bool ImportRebuilder::createNewImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList)
 {
 	char sectionName[IMAGE_SIZEOF_SHORT_NAME + 1] = {0};
-    strcpy_s(sectionName, ".scy");
+    StringConversion::ToASCII(this->sectionName, sectionName, IMAGE_SIZEOF_SHORT_NAME + 1);
 
 	calculateImportSizes(moduleList);
 	

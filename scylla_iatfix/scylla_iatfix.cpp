@@ -178,7 +178,7 @@ extern "C" SCYLLA_IATFIX_API bool scylla_importsValid()
     return valid;
 }
 
-extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile)
+extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName)
 {
     WCHAR dumpedFilePath[MAX_PATH];
     WCHAR fixedFilePath[MAX_PATH];
@@ -187,7 +187,7 @@ extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFi
     wcscpy_s(dumpedFilePath, dumpFile);
 
     //add IAT section to dump
-	ImportRebuilder importRebuild(dumpedFilePath);
+	ImportRebuilder importRebuild(dumpedFilePath, sectionName);
     importRebuild.enableOFTSupport();
 
 	if (importRebuild.rebuildImportTable(fixedFilePath, moduleList))
@@ -198,6 +198,11 @@ extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFi
 	{
         return SCY_ERROR_IATWRITE;
 	}
+}
+
+extern "C" SCYLLA_IATFIX_API int scylla_fixMappedDump(DWORD_PTR iatOffset, DWORD_PTR FileMapVA)
+{
+    return SCY_ERROR_SUCCESS;
 }
 
 BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
