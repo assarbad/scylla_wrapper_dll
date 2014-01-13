@@ -40,6 +40,7 @@ class PeParser
 public:
 	PeParser(const WCHAR * file, bool readSectionHeaders = true);
 	PeParser(const DWORD_PTR moduleBase, bool readSectionHeaders = true);
+    PeParser(const DWORD_PTR iatVA, const DWORD_PTR FileMapVA, const HANDLE hFileMap, bool readSectionHeaders = true);
 
 	~PeParser();
 
@@ -86,6 +87,7 @@ protected:
 
 	const WCHAR * filename;
 	DWORD_PTR moduleBaseAddress;
+    DWORD_PTR fileMapVA;
 
 	/************************************************************************/
 	/* PE FILE                                                              */
@@ -113,6 +115,7 @@ protected:
 	DWORD fileSize;
 
 	bool readPeHeaderFromFile(bool readSectionHeaders);
+    bool readPeHeaderFromFileMapping(bool readSectionHeaders);
 	bool readPeHeaderFromProcess(bool readSectionHeaders);
 
 	bool hasDirectory(const int directoryIndex);

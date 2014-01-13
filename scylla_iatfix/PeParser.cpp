@@ -53,6 +53,26 @@ PeParser::PeParser(const DWORD_PTR moduleBase, bool readSectionHeaders)
 
 }
 
+PeParser::PeParser(const DWORD_PTR iatVA, const DWORD_PTR FileMapVA, const HANDLE hFileMap, bool readSectionHeaders)
+{
+    initClass();
+
+    hFile = hFileMap;
+    fileMapVA = FileMapVA;
+
+    if(hFile) {
+        readPeHeaderFromFileMapping(readSectionHeaders);
+
+		if (readSectionHeaders)
+		{
+			if (isValidPeFile())
+			{
+				getSectionHeaders();
+			}
+		}
+    }
+}
+
 PeParser::~PeParser()
 {
 	if (headerMemory)
@@ -91,6 +111,7 @@ void PeParser::initClass()
 	filename = 0;
 	fileSize = 0;
 	moduleBaseAddress = 0;
+    fileMapVA = 0;
 	hFile = INVALID_HANDLE_VALUE;
 }
 
@@ -282,6 +303,53 @@ bool PeParser::readPeHeaderFromFile(bool readSectionHeaders)
 		}
 
 		closeFileHandle();
+	}
+
+	return retValue;
+}
+
+bool PeParser::readPeHeaderFromFileMapping(bool readSectionHeaders)
+{
+	bool retValue = false;
+	DWORD correctSize = 0;
+	DWORD numberOfBytesRead = 0;
+
+	DWORD readSize = getInitialHeaderReadSize(readSectionHeaders);
+
+	headerMemory = new BYTE[readSize];
+
+    //not working for fileMapping, hopefully we dont need it
+	//fileSize = (DWORD)ProcessAccessHelp::getFileSize(hFile);
+
+    memcpy((void*)headerMemory, (void*)fileMapVA, readSize);
+
+	getDosAndNtHeader(headerMemory, (LONG)readSize);
+
+	if (isValidPeFile())
+	{
+        retValue = true;
+		correctSize = calcCorrectPeHeaderSize(readSectionHeaders);
+
+		if (readSize < correctSize)
+		{
+			readSize = correctSize;
+
+			if (fileSize > 0)
+			{
+				if (fileSize < correctSize)
+				{
+					readSize = fileSize;
+				}
+			}
+
+					
+			delete [] headerMemory;
+			headerMemory = new BYTE[readSize];
+
+            memcpy((void*)headerMemory, (void*)fileMapVA, readSize);
+			
+            getDosAndNtHeader(headerMemory, (LONG)readSize);
+		}
 	}
 
 	return retValue;
