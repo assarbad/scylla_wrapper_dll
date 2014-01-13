@@ -412,7 +412,7 @@ bool PeParser::readPeSectionsFromFile()
 
 bool PeParser::readPeSectionsFromMappedFile()
 {
-    return readPeSectionsFromMappedFile();
+    return readPeSectionsFromProcess();
 }
 
 bool PeParser::getSectionHeaders()
