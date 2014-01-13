@@ -67,6 +67,7 @@ public:
 
 	bool readPeSectionsFromProcess();
 	bool readPeSectionsFromFile();
+    bool readPeSectionsFromMappedFile();
 	bool savePeFileToDisk(const WCHAR * newFile);
 	void removeDosStub();
 	void alignAllSectionHeaders();

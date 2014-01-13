@@ -410,6 +410,11 @@ bool PeParser::readPeSectionsFromFile()
 	return retValue;
 }
 
+bool PeParser::readPeSectionsFromMappedFile()
+{
+    return readPeSectionsFromMappedFile();
+}
+
 bool PeParser::getSectionHeaders()
 {
 	PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pNTHeader32);
