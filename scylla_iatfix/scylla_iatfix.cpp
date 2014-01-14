@@ -200,8 +200,20 @@ extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFi
 	}
 }
 
-extern "C" SCYLLA_IATFIX_API int scylla_fixMappedDump(DWORD_PTR iatOffset, DWORD_PTR FileMapVA)
+extern "C" SCYLLA_IATFIX_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap)
 {
+    ImportRebuilder importRebuild(iatVA, FileMapVA, hFileMap, L".test");
+    importRebuild.enableOFTSupport();
+
+    if (importRebuild.rebuildMappedImportTable(iatVA, moduleList))
+	{
+        return SCY_ERROR_SUCCESS;
+	}
+	else
+	{
+        return SCY_ERROR_IATWRITE;
+	}
+
     return SCY_ERROR_SUCCESS;
 }
 

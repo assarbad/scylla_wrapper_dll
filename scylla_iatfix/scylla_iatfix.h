@@ -33,7 +33,7 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
 extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid);
 extern "C" SCYLLA_IATFIX_API bool scylla_importsValid();
 extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
-extern "C" SCYLLA_IATFIX_API int scylla_fixMappedDump(DWORD_PTR iatOffset, DWORD_PTR FileMapVA); 
+extern "C" SCYLLA_IATFIX_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap); 
 
 //dumper exports
 extern "C" SCYLLA_IATFIX_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
