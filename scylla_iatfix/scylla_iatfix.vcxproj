@@ -128,12 +128,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)_x86</TargetName>
+    <TargetName>$(ProjectName)d_x86</TargetName>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Lib|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)_x64</TargetName>
+    <TargetName>$(ProjectName)d_x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
