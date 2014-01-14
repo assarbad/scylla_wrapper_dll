@@ -17,6 +17,8 @@ int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid);
 bool scylla_importsValid();
 //fix the dump
 int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
+//fix a mapped dump
+int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap); 
 
 //dumps a process
 bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
