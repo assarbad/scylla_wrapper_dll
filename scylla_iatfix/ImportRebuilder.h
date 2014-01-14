@@ -22,7 +22,23 @@ public:
         this->sectionName = (WCHAR*)sectionName;
 	}
 
+    ImportRebuilder(const DWORD_PTR iatVA, const DWORD_PTR FileMapVA, const HANDLE hFileMap, const WCHAR* sectionName) : PeParser(iatVA, FileMapVA, hFileMap, true)
+	{
+		pImportDescriptor = 0;
+		pThunkData = 0;
+		pImportByName = 0;
+
+		numberOfImportDescriptors = 0;
+		sizeOfImportSection = 0;
+		sizeOfApiAndModuleNames = 0;
+		importSectionIndex = 0;
+		useOFT = false;
+		sizeOfOFTArray = 0;
+        this->sectionName = (WCHAR*)sectionName;
+	}
+
 	bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    bool rebuildMappedImportTable(DWORD_PTR iatVA, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 	void enableOFTSupport();
 private:
 	PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor;
@@ -44,6 +60,7 @@ private:
 
 	bool createNewImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 	bool buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    bool buildNewMappedImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 	void setFlagToIATSection(DWORD_PTR iatAddress);
 	size_t addImportToImportTable( ImportThunk * pImport, PIMAGE_THUNK_DATA pThunk, PIMAGE_IMPORT_BY_NAME pImportByName, DWORD sectionOffset);
 	size_t addImportDescriptor(ImportModuleThunk * pImportModule, DWORD sectionOffset, DWORD sectionOffsetOFTArray);

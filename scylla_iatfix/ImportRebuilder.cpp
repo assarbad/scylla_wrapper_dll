@@ -29,6 +29,27 @@ bool ImportRebuilder::rebuildImportTable(const WCHAR * newFilePath, std::map<DWO
 	return retValue;
 }
 
+bool ImportRebuilder::rebuildMappedImportTable(DWORD_PTR iatVA, std::map<DWORD_PTR, ImportModuleThunk> & moduleList)
+{
+	bool retValue = false;
+
+	if (isValidPeFile())
+	{
+		if (readPeSectionsFromMappedFile())
+		{
+            retValue = buildNewMappedImportTable(moduleList);
+
+            //destructor of PEParser deletes .data so we need to remove our pointer to FileMapping
+            for (WORD i = 0; i < getNumberOfSections(); i++)
+	        {
+                listPeSection[i].data = NULL;
+	        }
+        }
+    }
+
+    return retValue;
+}
+
 bool ImportRebuilder::buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList)
 {
 	createNewImportSection(moduleList);
@@ -63,6 +84,60 @@ bool ImportRebuilder::buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk>
 		pNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size = (DWORD)(numberOfImportDescriptors * sizeof(IMAGE_IMPORT_DESCRIPTOR));
 	}
 
+
+	return true;
+}
+
+bool ImportRebuilder::buildNewMappedImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList)
+{
+    calculateImportSizes(moduleList);
+
+    importSectionIndex = listPeSection.size() - 1;
+
+	DWORD dwSize = fillImportSection(moduleList);
+
+	if (!dwSize)
+	{
+		return false;
+	}
+
+	DWORD vaImportAddress = listPeSection[importSectionIndex].sectionHeader.VirtualAddress;
+
+	if (useOFT)
+	{
+		//OFT array is at the beginning of the import section
+		vaImportAddress += (DWORD)sizeOfOFTArray;
+	}
+
+    DWORD headerOffset = sizeof(IMAGE_DOS_HEADER);
+    if (dosStubSize && pDosStub) {
+        headerOffset += dosStubSize;
+    }
+
+	if (isPE32())
+	{
+        PIMAGE_NT_HEADERS32 pMappedNTHeader32 = (PIMAGE_NT_HEADERS32)(fileMapVA + headerOffset);
+
+		pMappedNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress = vaImportAddress;
+		pMappedNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size = (DWORD)(numberOfImportDescriptors * sizeof(IMAGE_IMPORT_DESCRIPTOR));
+
+        headerOffset +=  sizeof(IMAGE_NT_HEADERS32);
+	}
+	else
+	{
+	    PIMAGE_NT_HEADERS64 pMappedNTHeader64 = (PIMAGE_NT_HEADERS64)(fileMapVA + headerOffset);
+
+		pMappedNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress = vaImportAddress;
+		pMappedNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size = (DWORD)(numberOfImportDescriptors * sizeof(IMAGE_IMPORT_DESCRIPTOR));
+
+        headerOffset +=  sizeof(IMAGE_NT_HEADERS64);
+	}
+
+	//setFlagToIATSection
+    headerOffset += sizeof(IMAGE_SECTION_HEADER)*importSectionIndex;
+
+    PIMAGE_SECTION_HEADER pImportSection = (PIMAGE_SECTION_HEADER) (fileMapVA + headerOffset);
+    pImportSection->Characteristics |= IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE;
 
 	return true;
 }

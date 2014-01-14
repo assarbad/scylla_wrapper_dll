@@ -898,7 +898,6 @@ bool PeParser::readPeSectionFromFileMapping(DWORD readOffset, PeFileSection & pe
 {
 	DWORD bytesRead = 0;
 
-    //simply copying the pointer to the already mapped filesection should do the trick
     peFileSection.data = (BYTE*)fileMapVA + readOffset;
 
 	return true;
