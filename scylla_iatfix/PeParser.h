@@ -134,6 +134,7 @@ protected:
 
 	bool readPeSectionFromFile( DWORD readOffset, PeFileSection & peFileSection );
 	bool readPeSectionFromProcess( DWORD_PTR readOffset, PeFileSection & peFileSection );
+    bool readPeSectionFromFileMapping(DWORD readOffset, PeFileSection & peFileSection);
 
 	bool readSectionFromProcess(const DWORD_PTR readOffset, PeFileSection & peFileSection );
 	bool readSectionFromFile(const DWORD readOffset, PeFileSection & peFileSection );

@@ -412,7 +412,21 @@ bool PeParser::readPeSectionsFromFile()
 
 bool PeParser::readPeSectionsFromMappedFile()
 {
-    return readPeSectionsFromProcess();
+	bool retValue = true;
+	DWORD_PTR readOffset = 0;
+
+	listPeSection.reserve(getNumberOfSections());
+
+	for (WORD i = 0; i < getNumberOfSections(); i++)
+	{
+		readOffset = listPeSection[i].sectionHeader.VirtualAddress + moduleBaseAddress;
+
+		listPeSection[i].normalSize = listPeSection[i].sectionHeader.Misc.VirtualSize;
+
+        readPeSectionFromFileMapping(readOffset, listPeSection[i]);
+	}
+
+	return retValue;
 }
 
 bool PeParser::getSectionHeaders()
@@ -878,6 +892,16 @@ bool PeParser::readPeSectionFromFile(DWORD readOffset, PeFileSection & peFileSec
 	SetFilePointer(hFile, readOffset, 0, FILE_BEGIN);
 
 	return (ReadFile(hFile, peFileSection.data, peFileSection.dataSize, &bytesRead, 0) != FALSE);
+}
+
+bool PeParser::readPeSectionFromFileMapping(DWORD readOffset, PeFileSection & peFileSection)
+{
+	DWORD bytesRead = 0;
+
+    //simply copying the pointer to the already mapped filesection should do the trick
+    peFileSection.data = (BYTE*)fileMapVA + readOffset;
+
+	return true;
 }
 
 bool PeParser::readPeSectionFromProcess(DWORD_PTR readOffset, PeFileSection & peFileSection)
