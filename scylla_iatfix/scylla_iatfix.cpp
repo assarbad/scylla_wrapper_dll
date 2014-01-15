@@ -108,11 +108,13 @@ extern "C" SCYLLA_IATFIX_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart
     return retVal;
 }
 
-extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid)
+extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback)
 {
     //some things we need
 	ApiReader apiReader;
     ProcessLister processLister;
+    typedef void*(*fCallback)(LPVOID invalidImport);
+    fCallback myCallback = (fCallback)invalidImportCallback;
 
     //need to find correct process by PID
     Process *processPtr = 0;
@@ -145,6 +147,37 @@ extern "C" SCYLLA_IATFIX_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatS
 
     //parse IAT
     apiReader.readAndParseIAT(iatAddr, iatSize, moduleList);
+
+    //callback for invalid imports
+    if(invalidImportCallback != NULL) {
+	    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+	    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+	    it_module = moduleList.begin();
+	    while (it_module != moduleList.end())
+	    {
+		    ImportModuleThunk &moduleThunk = it_module->second;
+
+		    it_import = moduleThunk.thunkList.begin();
+		    while (it_import != moduleThunk.thunkList.end())
+		    {
+			    ImportThunk &importThunk = it_import->second;
+
+                if(!importThunk.valid) {
+                    DWORD_PTR apiAddr = (DWORD_PTR)myCallback((LPVOID)importThunk.apiAddressVA);
+
+                    //we trust the users return value
+                    if(apiAddr != NULL) {
+                        importThunk.apiAddressVA = apiAddr;
+                        importThunk.valid = true;
+                    }
+                }
+			    it_import++;
+		    }
+
+		    it_module++;
+	    }
+    }
 
     return SCY_ERROR_SUCCESS;
 }
