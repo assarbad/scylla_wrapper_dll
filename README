@@ -12,7 +12,7 @@ Exports:
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
-int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid);
+int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID PVOID invalidImportCallback = NULL);
 //are all imports valid?
 bool scylla_importsValid();
 //fix the dump
@@ -59,3 +59,9 @@ int search = searchIAT(fdProcessInfo->dwProcessId, iatStart, iatSize, eip, false
 if(search==0) int imports = getImports(iatStart, iatSize, pid);
 bool valid = importsValid();
 if(valid) int fix = fixDump(dumpFileName, IatFixFileName);
+
+###################################
+
+typedef void*(*fCallback)(LPVOID invalidImport);
+
+e.g. void* cbInvalidImport(void* apiAddr)
