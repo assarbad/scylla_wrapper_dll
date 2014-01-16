@@ -65,3 +65,8 @@ if(valid) int fix = fixDump(dumpFileName, IatFixFileName);
 typedef void*(*fCallback)(LPVOID invalidImport);
 
 e.g. void* cbInvalidImport(void* apiAddr)
+
+Calling convention:
+The pre-compiled binaries and project standard uses _cdecl calling convention.
+For assembly users, this means you have to push arguments from right-to-left onto the stack
+and clean the stack yourself after calling.
