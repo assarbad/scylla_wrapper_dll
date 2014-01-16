@@ -355,6 +355,7 @@
     </ClCompile>
     <ClCompile Include="StringConversion.cpp" />
     <ClCompile Include="SystemInformation.cpp" />
+    <ClCompile Include="Thunks.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
