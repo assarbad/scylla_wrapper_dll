@@ -15,6 +15,9 @@ int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR s
 int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID PVOID invalidImportCallback = NULL);
 //are all imports valid?
 bool scylla_importsValid();
+//cut an Import, because its invalid or whatever reason. Calling this from within the invalidImportCallback will crash! 
+//Call it after scylla_getImports call returned !
+bool scylla_cutImport(DWORD_PTR apiAddr);
 //fix the dump
 int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
 //fix a mapped dump
@@ -34,9 +37,6 @@ const BYTE SCY_ERROR_PROCOPEN = -1;
 const BYTE SCY_ERROR_IATWRITE = -2;
 const BYTE SCY_ERROR_IATSEARCH = -3;
 const BYTE SCY_ERROR_IATNOTFOUND = -4;
-
-TODO:
-- export a CutThunks function
 
 Usage:
 

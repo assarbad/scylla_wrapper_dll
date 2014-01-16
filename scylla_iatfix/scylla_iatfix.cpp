@@ -211,6 +211,49 @@ extern "C" SCYLLA_IATFIX_API bool scylla_importsValid()
     return valid;
 }
 
+extern "C" SCYLLA_IATFIX_API bool scylla_cutImport(DWORD_PTR apiAddr)
+{
+	std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+	std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+	it_module = moduleList.begin();
+	while (it_module != moduleList.end())
+	{
+		ImportModuleThunk &moduleThunk = it_module->second;
+
+		it_import = moduleThunk.thunkList.begin();
+		while (it_import != moduleThunk.thunkList.end())
+		{
+			ImportThunk &importThunk = it_import->second;
+
+            //we found the API Addr to be cut
+            if(importThunk.apiAddressVA == apiAddr) {
+                moduleThunk.thunkList.erase(it_import);
+
+                //whole module empty now?
+                if(moduleThunk.thunkList.empty()) {
+                    moduleList.erase(it_module);
+                } else { //maybe the module is valid now?
+                    if (moduleThunk.isValid() && moduleThunk.moduleName[0] == L'?')
+					{
+						//update module name
+                        wcscpy_s(moduleThunk.moduleName, moduleThunk.thunkList.begin()->second.moduleName);
+					}
+
+                    moduleThunk.firstThunk = moduleThunk.thunkList.begin()->second.rva;
+                }
+
+                return true;
+            }
+			it_import++;
+		}
+
+		it_module++;
+	}
+
+    return false;
+}
+
 extern "C" SCYLLA_IATFIX_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName)
 {
     WCHAR dumpedFilePath[MAX_PATH];
