@@ -12,7 +12,7 @@ Exports:
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
-int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID PVOID invalidImportCallback = NULL);
+int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback = NULL);
 //are all imports valid?
 bool scylla_importsValid();
 //cut an Import, because its invalid or whatever reason. Calling this from within the invalidImportCallback will crash! 
@@ -41,7 +41,7 @@ const BYTE SCY_ERROR_IATNOTFOUND = -4;
 Usage:
 
 typedef int (*SEARCHIAT) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
-typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD);
+typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD, LPVOID);
 typedef bool (*IMPORTSVALID) ();
 typedef int (*FIXDUMP) (WCHAR*, WCHAR*);
 
