@@ -35,6 +35,8 @@ extern "C" SCYLLA_WRAPPER_API bool scylla_importsValid();
 extern "C" SCYLLA_WRAPPER_API bool scylla_cutImport(DWORD_PTR apiAddr);
 extern "C" SCYLLA_WRAPPER_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
 extern "C" SCYLLA_WRAPPER_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap);
+extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount();
+extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount();
 
 //dumper exports
 extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);

@@ -24,6 +24,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IATSearch.h"
 
 static std::map<DWORD_PTR, ImportModuleThunk> moduleList;
+static int moduleCount = 0;
+static int importCount = 0;
+
+void updateCounts()
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+    moduleCount = 0;
+    importCount = 0;
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            importCount++;
+            it_import++;
+        }
+
+        moduleCount++;
+        it_module++;
+    }
+}
 
 extern "C" SCYLLA_WRAPPER_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart = 0xDEADBEEF, bool advancedSearch = false)
 {
@@ -179,6 +208,8 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iat
         }
     }
 
+    updateCounts();
+
     return SCY_ERROR_SUCCESS;
 }
 
@@ -243,6 +274,8 @@ extern "C" SCYLLA_WRAPPER_API bool scylla_cutImport(DWORD_PTR apiAddr)
                     moduleThunk.firstThunk = moduleThunk.thunkList.begin()->second.rva;
                 }
 
+                updateCounts();
+
                 return true;
             }
             it_import++;
@@ -291,6 +324,16 @@ extern "C" SCYLLA_WRAPPER_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PT
     }
 
     return SCY_ERROR_SUCCESS;
+}
+
+extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount()
+{
+    return moduleCount;
+}
+
+extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount()
+{
+    return importCount;
 }
 
 BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
