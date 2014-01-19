@@ -1,3 +1,4 @@
+```
 This is a wrapper around Scylla. 
 It exports functions for IAT fixing, dumping and PE rebuilding.
 
@@ -7,8 +8,10 @@ What has been changed:
 - Native API calls (Nt*) replaced by WinAPI calls
 - stripped all WTL/ATL dependencies
 - stripped GUI (obviously)
+```
 
 ## Exports ##
+:::C
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
@@ -37,14 +40,14 @@ bool scylla_dumpProcessA(DWORD_PTR pid, const char * fileToDump, DWORD_PTR image
 bool scylla_rebuildFileW(const WCHAR * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
 bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
 
-''Return Codes''
+## Return Codes ##
 const BYTE SCY_ERROR_SUCCESS = 0;
 const BYTE SCY_ERROR_PROCOPEN = -1;
 const BYTE SCY_ERROR_IATWRITE = -2;
 const BYTE SCY_ERROR_IATSEARCH = -3;
 const BYTE SCY_ERROR_IATNOTFOUND = -4;
 
-''Usage''
+## Usage ##
 
 typedef int (*SEARCHIAT) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
 typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD, LPVOID);
@@ -66,7 +69,7 @@ if(search==0) int imports = getImports(iatStart, iatSize, pid);
 bool valid = importsValid();
 if(valid) int fix = fixDump(dumpFileName, IatFixFileName);
 
-''Definitions''
+## Definitions ##
 
 typedef void*(*fCallback)(LPVOID invalidImport);
 
