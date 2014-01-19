@@ -8,7 +8,7 @@ What has been changed:
 - stripped all WTL/ATL dependencies
 - stripped GUI (obviously)
 
-''Exports''
+## Exports ##
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
