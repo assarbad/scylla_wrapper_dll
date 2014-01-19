@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProcessLister.h"
 #include "ImportRebuilder.h"
 #include "IATSearch.h"
+#include "StringConversion.h"
 
 static std::map<DWORD_PTR, ImportModuleThunk> moduleList;
 static int moduleCount = 0;
@@ -334,6 +335,52 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount()
 extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount()
 {
     return importCount;
+}
+
+extern "C" SCYLLA_WRAPPER_API void scylla_enumImportTree(LPVOID enumCallback)
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+    typedef void(*fCallback)(LPVOID importDetail);
+    fCallback myCallback = (fCallback)enumCallback;
+    ImportEnumData myImportEnumData;
+    myImportEnumData.DLLName = (char*)malloc(sizeof(char)*MAX_PATH);
+    myImportEnumData.APIName = (char*)malloc(sizeof(char)*MAX_PATH);
+
+    if(enumCallback == NULL || moduleList.empty()) {
+        return;
+    }
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        //module
+        myImportEnumData.NewDll = true;
+        myImportEnumData.NumberOfImports = moduleThunk.thunkList.size();
+        StringConversion::ToASCII(moduleThunk.moduleName, myImportEnumData.DLLName, sizeof(char)*MAX_PATH);
+        myImportEnumData.BaseImportThunk = moduleThunk.firstThunk;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            //import
+            myImportEnumData.ImageBase = 0;
+            myImportEnumData.ImportThunk = importThunk.apiAddressVA;
+            strcpy_s(myImportEnumData.APIName, sizeof(char)*MAX_PATH, importThunk.name);
+
+            myCallback(&myImportEnumData);
+
+            myImportEnumData.NewDll = false;
+
+            it_import++;
+        }
+
+        it_module++;
+    }
 }
 
 BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)

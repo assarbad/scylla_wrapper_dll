@@ -22,11 +22,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SCYLLA_WRAPPER_API __declspec(dllimport)
 #endif
 
+//packing set to 1 needed because TitanEngine uses same
+#pragma pack(push, 1)
+
 const BYTE SCY_ERROR_SUCCESS = 0;
 const BYTE SCY_ERROR_PROCOPEN = -1;
 const BYTE SCY_ERROR_IATWRITE = -2;
 const BYTE SCY_ERROR_IATSEARCH = -3;
 const BYTE SCY_ERROR_IATNOTFOUND = -4;
+
+typedef struct
+{
+    bool NewDll;
+    int NumberOfImports;
+    ULONG_PTR ImageBase;
+    ULONG_PTR BaseImportThunk;
+    ULONG_PTR ImportThunk;
+    char* APIName;
+    char* DLLName;
+} ImportEnumData, *PImportEnumData;
 
 //IAT exports
 extern "C" SCYLLA_WRAPPER_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch);
@@ -37,6 +51,7 @@ extern "C" SCYLLA_WRAPPER_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixF
 extern "C" SCYLLA_WRAPPER_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap);
 extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount();
 extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount();
+extern "C" SCYLLA_WRAPPER_API void scylla_enumImportTree(LPVOID enumCallBack);
 
 //dumper exports
 extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
