@@ -74,9 +74,11 @@ What has been changed:
     :::c++
     typedef void*(*fCallback)(LPVOID invalidImport);
     
-    e.g. void* cbInvalidImport(void* apiAddr)
+    //e.g.
+    void* cbInvalidImport(void* apiAddr)
     
-    //pointer on this used in scylla_enumImportTree as argument
+    typedef void(*fCallback)(LPVOID importDetail);
+
     typedef struct
     {
         bool NewDll;
@@ -87,6 +89,12 @@ What has been changed:
         char* APIName;
         char* DLLName;
     } ImportEnumData
+
+    //e.g. pointer on this struct used in scylla_enumImportTree as argument
+    void cbEnumImports(void* importDetail)
+    {
+        ImportEnumData* data = (ImportEnumData*)importDetail;
+    }
 
 ## Notes ##
 ```
