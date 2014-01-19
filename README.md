@@ -2,7 +2,7 @@
 This is a wrapper around Scylla. 
 It exports functions for IAT fixing, dumping and PE rebuilding.
 
-based on https://github.com/NtQuery/Scylla commit 46f9e0eb9e  (v0.9.2)
+based on http://github.com/NtQuery/Scylla commit 46f9e0eb9e  (v0.9.2)
 
 What has been changed:
 - Native API calls (Nt*) replaced by WinAPI calls
@@ -11,7 +11,7 @@ What has been changed:
 ```
 
 ## Exports ##
-:::C
+:::c++
 //searches IAT, writes to iatStart, iatSize
 int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
 //reads the imports, iatAddr is VA
