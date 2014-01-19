@@ -88,7 +88,12 @@ What has been changed:
         char* DLLName;
     } ImportEnumData
 
-## Calling convention ##
+## Notes ##
+```
 The pre-compiled binaries and project standard uses _cdecl calling convention.
 For assembly users, this means you have to push arguments from right-to-left onto the stack
 and clean the stack yourself after calling.
+
+#pragma pack(push,1) or compiler flag /Zp1 is needed for the struct members to be aligned correctly
+
+```
