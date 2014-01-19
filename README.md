@@ -41,53 +41,54 @@ What has been changed:
     bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
 
 ## Return Codes ##
-const BYTE SCY_ERROR_SUCCESS = 0;
-const BYTE SCY_ERROR_PROCOPEN = -1;
-const BYTE SCY_ERROR_IATWRITE = -2;
-const BYTE SCY_ERROR_IATSEARCH = -3;
-const BYTE SCY_ERROR_IATNOTFOUND = -4;
+    :::c++
+    const BYTE SCY_ERROR_SUCCESS = 0;
+    const BYTE SCY_ERROR_PROCOPEN = -1;
+    const BYTE SCY_ERROR_IATWRITE = -2;
+    const BYTE SCY_ERROR_IATSEARCH = -3;
+    const BYTE SCY_ERROR_IATNOTFOUND = -4;
 
 ## Usage ##
-
-typedef int (*SEARCHIAT) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
-typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD, LPVOID);
-typedef bool (*IMPORTSVALID) ();
-typedef int (*FIXDUMP) (WCHAR*, WCHAR*);
-
-HMODULE lib = LoadLibrary(_T("scylla_iatfix"));
-SEARCHIAT searchIAT = (SEARCHIAT) GetProcAddress(lib, "scylla_searchIAT");
-GETIMPORTS getImports = (GETIMPORTS) GetProcAddress(lib, "scylla_getImports");
-IMPORTSVALID importsValid = (IMPORTSVALID) GetProcAddress(lib, "scylla_importsValid");
-FIXDUMP fixDump = (FIXDUMP) GetProcAddress(lib, "scylla_fixDump");
-
-DWORD iatStart = 0xDEADBEEF;
-DWORD iatSize = 0xDEADBEEF;
-
-int search = searchIAT(fdProcessInfo->dwProcessId, iatStart, iatSize, eip, false);
-
-if(search==0) int imports = getImports(iatStart, iatSize, pid);
-bool valid = importsValid();
-if(valid) int fix = fixDump(dumpFileName, IatFixFileName);
+    :::c++
+    typedef int (*SEARCHIAT) (DWORD, DWORD_PTR &, DWORD &, DWORD_PTR, bool);
+    typedef int (*GETIMPORTS) (DWORD_PTR, DWORD, DWORD, LPVOID);
+    typedef bool (*IMPORTSVALID) ();
+    typedef int (*FIXDUMP) (WCHAR*, WCHAR*);
+    
+    HMODULE lib = LoadLibrary(_T("scylla_iatfix"));
+    SEARCHIAT searchIAT = (SEARCHIAT) GetProcAddress(lib, "scylla_searchIAT");
+    GETIMPORTS getImports = (GETIMPORTS) GetProcAddress(lib, "scylla_getImports");
+    IMPORTSVALID importsValid = (IMPORTSVALID) GetProcAddress(lib, "scylla_importsValid");
+    FIXDUMP fixDump = (FIXDUMP) GetProcAddress(lib, "scylla_fixDump");
+    
+    DWORD iatStart = 0xDEADBEEF;
+    DWORD iatSize = 0xDEADBEEF;
+    
+    int search = searchIAT(fdProcessInfo->dwProcessId, iatStart, iatSize, eip, false);
+    
+    if(search==0) int imports = getImports(iatStart, iatSize, pid);
+    bool valid = importsValid();
+    if(valid) int fix = fixDump(dumpFileName, IatFixFileName);
 
 ## Definitions ##
+    :::c++
+    typedef void*(*fCallback)(LPVOID invalidImport);
+    
+    e.g. void* cbInvalidImport(void* apiAddr)
+    
+    //pointer on this used in scylla_enumImportTree as argument
+    typedef struct
+    {
+        bool NewDll;
+        int NumberOfImports;
+        ULONG_PTR ImageBase;
+        ULONG_PTR BaseImportThunk;
+        ULONG_PTR ImportThunk;
+        char* APIName;
+        char* DLLName;
+    } ImportEnumData
 
-typedef void*(*fCallback)(LPVOID invalidImport);
-
-e.g. void* cbInvalidImport(void* apiAddr)
-
-//pointer on this used in scylla_enumImportTree as argument
-typedef struct
-{
-    bool NewDll;
-    int NumberOfImports;
-    ULONG_PTR ImageBase;
-    ULONG_PTR BaseImportThunk;
-    ULONG_PTR ImportThunk;
-    char* APIName;
-    char* DLLName;
-} ImportEnumData
-
-''Calling convention''
+## Calling convention ##
 The pre-compiled binaries and project standard uses _cdecl calling convention.
 For assembly users, this means you have to push arguments from right-to-left onto the stack
 and clean the stack yourself after calling.
