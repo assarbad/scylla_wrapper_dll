@@ -11,34 +11,34 @@ What has been changed:
 ```
 
 ## Exports ##
-:::c++
-//searches IAT, writes to iatStart, iatSize
-int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
-//reads the imports, iatAddr is VA
-int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback = NULL);
-//are all imports valid?
-bool scylla_importsValid();
-//cut an Import, because its invalid or whatever reason. Calling this from within the invalidImportCallback will crash! 
-//Call it after scylla_getImports call returned !
-bool scylla_cutImport(DWORD_PTR apiAddr);
-//fix the dump
-int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
-//fix a mapped dump
-int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap); 
-//get imported DLL count
-int scylla_getModuleCount();
-//get total API Imports count
-int scylla_getImportCount();
-//enumerate imports tree
-void scylla_enumImportTree(LPVOID enumCallBack);
-
-//dumps a process
-bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
-bool scylla_dumpProcessA(DWORD_PTR pid, const char * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const char * fileResult);
-
-//rebuilds a files PE header
-bool scylla_rebuildFileW(const WCHAR * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
-bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
+    :::c++
+    //searches IAT, writes to iatStart, iatSize
+    int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
+    //reads the imports, iatAddr is VA
+    int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback = NULL);
+    //are all imports valid?
+    bool scylla_importsValid();
+    //cut an Import, because its invalid or whatever reason. Calling this from within the invalidImportCallback will crash! 
+    //Call it after scylla_getImports call returned !
+    bool scylla_cutImport(DWORD_PTR apiAddr);
+    //fix the dump
+    int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
+    //fix a mapped dump
+    int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PTR FileMapVA, HANDLE hFileMap); 
+    //get imported DLL count
+    int scylla_getModuleCount();
+    //get total API Imports count
+    int scylla_getImportCount();
+    //enumerate imports tree
+    void scylla_enumImportTree(LPVOID enumCallBack);
+    
+    //dumps a process
+    bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);
+    bool scylla_dumpProcessA(DWORD_PTR pid, const char * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const char * fileResult);
+    
+    //rebuilds a files PE header
+    bool scylla_rebuildFileW(const WCHAR * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
+    bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
 
 ## Return Codes ##
 const BYTE SCY_ERROR_SUCCESS = 0;
