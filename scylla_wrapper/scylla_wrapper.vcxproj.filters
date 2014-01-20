@@ -39,9 +39,6 @@
     <ClInclude Include="Thunks.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="NativeWinApi.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="PeParser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -84,9 +81,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="ProcessAccessHelp.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="NativeWinApi.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="PeParser.cpp">
