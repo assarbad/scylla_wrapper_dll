@@ -295,6 +295,7 @@
     <ClInclude Include="distorm.h" />
     <ClInclude Include="IATSearch.h" />
     <ClInclude Include="ImportRebuilder.h" />
+    <ClInclude Include="NativeWinApi.h" />
     <ClInclude Include="PeParser.h" />
     <ClInclude Include="ProcessAccessHelp.h" />
     <ClInclude Include="ProcessLister.h" />
@@ -337,6 +338,7 @@
     </ClCompile>
     <ClCompile Include="IATSearch.cpp" />
     <ClCompile Include="ImportRebuilder.cpp" />
+    <ClCompile Include="NativeWinApi.cpp" />
     <ClCompile Include="PeParser.cpp" />
     <ClCompile Include="ProcessAccessHelp.cpp" />
     <ClCompile Include="ProcessLister.cpp" />
