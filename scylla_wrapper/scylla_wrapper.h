@@ -52,6 +52,7 @@ extern "C" SCYLLA_WRAPPER_API int scylla_fixMappedDump(DWORD_PTR iatVA, DWORD_PT
 extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount();
 extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount();
 extern "C" SCYLLA_WRAPPER_API void scylla_enumImportTree(LPVOID enumCallBack);
+extern "C" SCYLLA_WRAPPER_API long scylla_estimatedIATSize();
 
 //dumper exports
 extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);

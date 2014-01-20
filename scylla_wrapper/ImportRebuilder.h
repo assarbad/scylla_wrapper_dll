@@ -7,65 +7,70 @@
 
 class ImportRebuilder : public PeParser {
 public:
-	ImportRebuilder(const WCHAR * file, const WCHAR* sectionName) : PeParser(file, true)
-	{
-		pImportDescriptor = 0;
-		pThunkData = 0;
-		pImportByName = 0;
+    ImportRebuilder(const WCHAR * file, const WCHAR* sectionName) : PeParser(file, true)
+    {
+        pImportDescriptor = 0;
+        pThunkData = 0;
+        pImportByName = 0;
 
-		numberOfImportDescriptors = 0;
-		sizeOfImportSection = 0;
-		sizeOfApiAndModuleNames = 0;
-		importSectionIndex = 0;
-		useOFT = false;
-		sizeOfOFTArray = 0;
+        numberOfImportDescriptors = 0;
+        sizeOfImportSection = 0;
+        sizeOfApiAndModuleNames = 0;
+        importSectionIndex = 0;
+        useOFT = false;
+        sizeOfOFTArray = 0;
         this->sectionName = (WCHAR*)sectionName;
-	}
+    }
 
     ImportRebuilder(const DWORD_PTR iatVA, const DWORD_PTR FileMapVA, const HANDLE hFileMap, const WCHAR* sectionName) : PeParser(iatVA, FileMapVA, hFileMap, true)
-	{
-		pImportDescriptor = 0;
-		pThunkData = 0;
-		pImportByName = 0;
+    {
+        pImportDescriptor = 0;
+        pThunkData = 0;
+        pImportByName = 0;
 
-		numberOfImportDescriptors = 0;
-		sizeOfImportSection = 0;
-		sizeOfApiAndModuleNames = 0;
-		importSectionIndex = 0;
-		useOFT = false;
-		sizeOfOFTArray = 0;
+        numberOfImportDescriptors = 0;
+        sizeOfImportSection = 0;
+        sizeOfApiAndModuleNames = 0;
+        importSectionIndex = 0;
+        useOFT = false;
+        sizeOfOFTArray = 0;
         this->sectionName = (WCHAR*)sectionName;
-	}
+    }
 
-	bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
     bool rebuildMappedImportTable(DWORD_PTR iatVA, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
-	void enableOFTSupport();
-private:
-	PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor;
-	PIMAGE_THUNK_DATA pThunkData;
-	PIMAGE_IMPORT_BY_NAME pImportByName;
+    void enableOFTSupport();
+    int getIATSectionSize(std::map<DWORD_PTR, ImportModuleThunk> & moduleList) {
+        this->calculateImportSizes(moduleList);
+        return this->sizeOfImportSection;
+    } ;
 
-	size_t numberOfImportDescriptors;
-	size_t sizeOfImportSection;
-	size_t sizeOfApiAndModuleNames;
-	size_t importSectionIndex;
+private:
+    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor;
+    PIMAGE_THUNK_DATA pThunkData;
+    PIMAGE_IMPORT_BY_NAME pImportByName;
+
+    size_t numberOfImportDescriptors;
+    size_t sizeOfImportSection;
+    size_t sizeOfApiAndModuleNames;
+    size_t importSectionIndex;
     WCHAR* sectionName;
 
-	//OriginalFirstThunk Array in Import Section
-	size_t sizeOfOFTArray;
-	bool useOFT;
+    //OriginalFirstThunk Array in Import Section
+    size_t sizeOfOFTArray;
+    bool useOFT;
 
-	DWORD fillImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
-	BYTE * getMemoryPointerFromRVA(DWORD_PTR dwRVA);
+    DWORD fillImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    BYTE * getMemoryPointerFromRVA(DWORD_PTR dwRVA);
 
-	bool createNewImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
-	bool buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    bool createNewImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    bool buildNewImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
     bool buildNewMappedImportTable(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
-	void setFlagToIATSection(DWORD_PTR iatAddress);
-	size_t addImportToImportTable( ImportThunk * pImport, PIMAGE_THUNK_DATA pThunk, PIMAGE_IMPORT_BY_NAME pImportByName, DWORD sectionOffset);
-	size_t addImportDescriptor(ImportModuleThunk * pImportModule, DWORD sectionOffset, DWORD sectionOffsetOFTArray);
+    void setFlagToIATSection(DWORD_PTR iatAddress);
+    size_t addImportToImportTable( ImportThunk * pImport, PIMAGE_THUNK_DATA pThunk, PIMAGE_IMPORT_BY_NAME pImportByName, DWORD sectionOffset);
+    size_t addImportDescriptor(ImportModuleThunk * pImportModule, DWORD sectionOffset, DWORD sectionOffsetOFTArray);
 
-	void calculateImportSizes(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
+    void calculateImportSizes(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 
-	void addSpecialImportDescriptor(DWORD_PTR rvaFirstThunk, DWORD sectionOffsetOFTArray);
+    void addSpecialImportDescriptor(DWORD_PTR rvaFirstThunk, DWORD sectionOffsetOFTArray);
 };

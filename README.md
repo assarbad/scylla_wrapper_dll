@@ -31,6 +31,8 @@ What has been changed:
     int scylla_getImportCount();
     //enumerate imports tree
     void scylla_enumImportTree(LPVOID enumCallBack);
+    //size which the new IAT will consume
+    long scylla_estimatedIATSize();
     
     //dumps a process
     bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);

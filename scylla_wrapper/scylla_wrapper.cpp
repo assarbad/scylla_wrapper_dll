@@ -383,6 +383,14 @@ extern "C" SCYLLA_WRAPPER_API void scylla_enumImportTree(LPVOID enumCallback)
     }
 }
 
+extern "C" SCYLLA_WRAPPER_API long scylla_estimatedIATSize()
+{
+    //faking a file to be rebuild
+    ImportRebuilder importRebuild(L"", L"");
+
+    return importRebuild.getIATSectionSize(moduleList);
+}
+
 BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
 {
     PeParser * peFile = 0;
