@@ -41,9 +41,9 @@ What has been changed:
     DWORD_PTR scylla_findImportWriteLocation(char* importName);
     //get thunkVA by ordinal
     DWORD_PTR scylla_findOrdinalImportWriteLocation(DWORD_PTR ordinalNumber);
-    //get API name by thunkVA
+    //get API name by thunkVA, cast return to char*
     DWORD_PTR scylla_findImportNameByWriteLocation(DWORD_PTR thunkVA);
-    //get DLL name by thunkVA
+    //get DLL name by thunkVA, cast return to char*
     DWORD_PTR scylla_findModuleNameByWriteLocation(DWORD_PTR thunkVA);
     
     //dumps a process
