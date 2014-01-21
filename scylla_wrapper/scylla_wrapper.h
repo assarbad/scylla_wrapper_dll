@@ -55,6 +55,10 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getModuleCount();
 extern "C" SCYLLA_WRAPPER_API int scylla_getImportCount();
 extern "C" SCYLLA_WRAPPER_API void scylla_enumImportTree(LPVOID enumCallBack);
 extern "C" SCYLLA_WRAPPER_API long scylla_estimatedIATSize();
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findImportWriteLocation(char* importName);
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findOrdinalImportWriteLocation(DWORD_PTR ordinalNumber);
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findImportNameByWriteLocation(DWORD_PTR thunkVA);
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findModuleNameByWriteLocation(DWORD_PTR thunkVA);
 
 //dumper exports
 extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);

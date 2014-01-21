@@ -37,6 +37,14 @@ What has been changed:
     void scylla_enumImportTree(LPVOID enumCallBack);
     //size which the new IAT will consume
     long scylla_estimatedIATSize();
+    //get thunkVA by API name
+    DWORD_PTR scylla_findImportWriteLocation(char* importName);
+    //get thunkVA by ordinal
+    DWORD_PTR scylla_findOrdinalImportWriteLocation(DWORD_PTR ordinalNumber);
+    //get API name by thunkVA
+    DWORD_PTR scylla_findImportNameByWriteLocation(DWORD_PTR thunkVA);
+    //get DLL name by thunkVA
+    DWORD_PTR scylla_findModuleNameByWriteLocation(DWORD_PTR thunkVA);
     
     //dumps a process
     bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult);

@@ -415,6 +415,115 @@ extern "C" SCYLLA_WRAPPER_API long scylla_estimatedIATSize()
     return importRebuild.getIATSectionSize(moduleList);
 }
 
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findImportWriteLocation(char* importName)
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            if(_stricmp(importName, importThunk.name)) {
+                //returns VA
+                return importThunk.va;
+            }
+        }
+        it_import++;
+    }
+
+    it_module++;
+
+    return NULL;
+}
+
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findOrdinalImportWriteLocation(DWORD_PTR ordinalNumber)
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            if(importThunk.ordinal == ordinalNumber) {
+                return importThunk.va;
+            }
+        }
+        it_import++;
+    }
+
+    it_module++;
+
+    return NULL;
+}
+
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findImportNameByWriteLocation(DWORD_PTR thunkVA)
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            if(importThunk.va == thunkVA) {
+                return (DWORD_PTR)importThunk.name;
+            }
+        }
+        it_import++;
+    }
+
+    it_module++;
+
+    return NULL;
+}
+
+extern "C" SCYLLA_WRAPPER_API DWORD_PTR scylla_findModuleNameByWriteLocation(DWORD_PTR thunkVA)
+{
+    std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;
+    std::map<DWORD_PTR, ImportThunk>::iterator it_import;
+
+    it_module = moduleList.begin();
+    while (it_module != moduleList.end())
+    {
+        ImportModuleThunk &moduleThunk = it_module->second;
+
+        it_import = moduleThunk.thunkList.begin();
+        while (it_import != moduleThunk.thunkList.end())
+        {
+            ImportThunk &importThunk = it_import->second;
+
+            if(importThunk.va == thunkVA) {
+                return (DWORD_PTR)importThunk.moduleName;
+            }
+        }
+        it_import++;
+    }
+
+    it_module++;
+
+    return NULL;
+}
+
 BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
 {
     PeParser * peFile = 0;
