@@ -214,6 +214,30 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iat
     return SCY_ERROR_SUCCESS;
 }
 
+extern "C" SCYLLA_WRAPPER_API bool scylla_addModule(const WCHAR* moduleName, DWORD_PTR firstThunk)
+{
+    ApiReader apiReader;
+
+    return apiReader.addModuleToModuleList(moduleName, firstThunk);
+}
+
+extern "C" SCYLLA_WRAPPER_API bool scylla_addImport(const WCHAR* importName, DWORD_PTR thunkVA)
+{
+    ApiReader apiReader;
+    ApiInfo *apiFound = 0;
+    DWORD apiVA = 0;
+    bool suspect = false;
+
+    if (ProcessAccessHelp::readMemoryFromProcess(thunkVA,sizeof(DWORD_PTR),(LPVOID)&apiVA)) {
+        apiFound = apiReader.getApiByVirtualAddress(apiVA, &suspect);
+        apiReader.addFoundApiToModuleList(thunkVA, apiFound, false, suspect);
+
+        return true;
+    }
+
+    return false;
+}
+
 extern "C" SCYLLA_WRAPPER_API bool scylla_importsValid()
 {
     std::map<DWORD_PTR, ImportModuleThunk>::iterator it_module;

@@ -16,6 +16,10 @@ What has been changed:
     int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch); 
     //reads the imports, iatAddr is VA
     int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback = NULL);
+    //add a module manually, in case auto-search didnt get it, e.g scattered IAT
+    bool scylla_addModule(const WCHAR* moduleName, DWORD_PTR firstThunkRVA);
+    //add API manually, in case auto-search didnt get it, e.g scattered IAT
+    bool scylla_addImport(const WCHAR* importName, DWORD_PTR thunkVA);
     //are all imports valid?
     bool scylla_importsValid();
     //cut an Import, because its invalid or whatever reason. Calling this from within the invalidImportCallback will crash! 
@@ -57,7 +61,7 @@ What has been changed:
     typedef bool (*IMPORTSVALID) ();
     typedef int (*FIXDUMP) (WCHAR*, WCHAR*);
     
-    HMODULE lib = LoadLibrary(_T("scylla_iatfix"));
+    HMODULE lib = LoadLibrary(_T("scylla_wrapper"));
     SEARCHIAT searchIAT = (SEARCHIAT) GetProcAddress(lib, "scylla_searchIAT");
     GETIMPORTS getImports = (GETIMPORTS) GetProcAddress(lib, "scylla_getImports");
     IMPORTSVALID importsValid = (IMPORTSVALID) GetProcAddress(lib, "scylla_importsValid");

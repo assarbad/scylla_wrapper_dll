@@ -45,6 +45,8 @@ typedef struct
 //IAT exports
 extern "C" SCYLLA_WRAPPER_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStart, DWORD &iatSize, DWORD_PTR searchStart, bool advancedSearch);
 extern "C" SCYLLA_WRAPPER_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iatSize, DWORD pid, LPVOID invalidImportCallback = NULL);
+extern "C" SCYLLA_WRAPPER_API bool scylla_addModule(const WCHAR* moduleName, DWORD_PTR firstThunkRVA);
+extern "C" SCYLLA_WRAPPER_API bool scylla_addImport(const WCHAR* importName, DWORD_PTR thunkVA);
 extern "C" SCYLLA_WRAPPER_API bool scylla_importsValid();
 extern "C" SCYLLA_WRAPPER_API bool scylla_cutImport(DWORD_PTR apiAddr);
 extern "C" SCYLLA_WRAPPER_API int scylla_fixDump(WCHAR* dumpFile, WCHAR* iatFixFile, WCHAR* sectionName = L".scy");
