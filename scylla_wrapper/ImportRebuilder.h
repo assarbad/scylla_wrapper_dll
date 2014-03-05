@@ -3,6 +3,7 @@
 #include <map>
 #include "PeParser.h"
 #include "Thunks.h"
+#include "IATReferenceScan.h"
 
 
 class ImportRebuilder : public PeParser {
@@ -19,6 +20,9 @@ public:
         importSectionIndex = 0;
         useOFT = false;
         sizeOfOFTArray = 0;
+        newIatInSection = false;
+        BuildDirectImportsJumpTable = false;
+        sizeOfJumpTable = 0;
         this->sectionName = (WCHAR*)sectionName;
     }
 
@@ -34,17 +38,23 @@ public:
         importSectionIndex = 0;
         useOFT = false;
         sizeOfOFTArray = 0;
+        newIatInSection = false;
+        BuildDirectImportsJumpTable = false;
+        sizeOfJumpTable = 0;
         this->sectionName = (WCHAR*)sectionName;
     }
 
     bool rebuildImportTable(const WCHAR * newFilePath, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
     bool rebuildMappedImportTable(DWORD_PTR iatVA, std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
     void enableOFTSupport();
+    void enableNewIatInSection(DWORD_PTR iatAddress, DWORD iatSize);
     int getIATSectionSize(std::map<DWORD_PTR, ImportModuleThunk> & moduleList) {
         this->calculateImportSizes(moduleList);
         return this->sizeOfImportSection;
     } ;
 
+    IATReferenceScan * iatReferenceScan;
+    bool BuildDirectImportsJumpTable;
 private:
     PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor;
     PIMAGE_THUNK_DATA pThunkData;
@@ -59,6 +69,16 @@ private:
     //OriginalFirstThunk Array in Import Section
     size_t sizeOfOFTArray;
     bool useOFT;
+    bool newIatInSection;
+    DWORD_PTR IatAddress;
+
+    DWORD IatSize;
+
+    DWORD sizeOfJumpTable;
+
+    DWORD directImportsJumpTableRVA;
+    BYTE * JMPTableMemory;
+    DWORD newIatBaseAddressRVA;
 
     DWORD fillImportSection(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
     BYTE * getMemoryPointerFromRVA(DWORD_PTR dwRVA);
@@ -73,4 +93,7 @@ private:
     void calculateImportSizes(std::map<DWORD_PTR, ImportModuleThunk> & moduleList);
 
     void addSpecialImportDescriptor(DWORD_PTR rvaFirstThunk, DWORD sectionOffsetOFTArray);
+    void patchFileForNewIatLocation();
+    void changeIatBaseAddress( std::map<DWORD_PTR, ImportModuleThunk> & moduleList );
+    void patchFileForDirectImportJumpTable();
 };

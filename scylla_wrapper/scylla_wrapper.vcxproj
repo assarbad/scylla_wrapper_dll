@@ -293,8 +293,10 @@
     <ClInclude Include="Architecture.h" />
     <ClInclude Include="DeviceNameResolver.h" />
     <ClInclude Include="distorm.h" />
+    <ClInclude Include="IATReferenceScan.h" />
     <ClInclude Include="IATSearch.h" />
     <ClInclude Include="ImportRebuilder.h" />
+    <ClInclude Include="mnemonics.h" />
     <ClInclude Include="NativeWinApi.h" />
     <ClInclude Include="PeParser.h" />
     <ClInclude Include="ProcessAccessHelp.h" />
@@ -336,6 +338,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release-Lib|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="IATReferenceScan.cpp" />
     <ClCompile Include="IATSearch.cpp" />
     <ClCompile Include="ImportRebuilder.cpp" />
     <ClCompile Include="NativeWinApi.cpp" />

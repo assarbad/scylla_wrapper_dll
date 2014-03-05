@@ -66,6 +66,12 @@
     <ClInclude Include="scylla_wrapper.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="IATReferenceScan.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="mnemonics.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -111,6 +117,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="scylla_wrapper.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="IATReferenceScan.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
