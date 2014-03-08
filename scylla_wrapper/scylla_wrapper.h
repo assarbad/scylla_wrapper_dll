@@ -67,3 +67,5 @@ extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessA(DWORD_PTR pid, const char
 //rebuilder exports
 extern "C" SCYLLA_WRAPPER_API bool scylla_rebuildFileW(const WCHAR * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
 extern "C" SCYLLA_WRAPPER_API bool scylla_rebuildFileA(const char * fileToRebuild, BOOL removeDosStub, BOOL updatePeHeaderChecksum, BOOL createBackup);
+
+#pragma pack(pop)
