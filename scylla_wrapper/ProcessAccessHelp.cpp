@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ProcessAccessHelp.h"
+#include "DeviceNameResolver.h"
 #include <Psapi.h>
 #include "PeParser.h"
 #include "NativeWinApi.h"
@@ -648,57 +649,47 @@ DWORD ProcessAccessHelp::getProcessByName(const WCHAR * processName)
     return dwPID;
 }
 
-bool ProcessAccessHelp::getProcessModules(DWORD dwPID, std::vector<ModuleInfo> &moduleList)
+bool ProcessAccessHelp::getProcessModules(HANDLE hProcess, std::vector<ModuleInfo> &moduleList)
 {
-    HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
-    MODULEENTRY32 me32;
     ModuleInfo module;
-
-    // Take a snapshot of all modules in the specified process.
-    hModuleSnap = CreateToolhelp32Snapshot( TH32CS_SNAPMODULE, dwPID );
-    if( hModuleSnap == INVALID_HANDLE_VALUE )
-    {
-        return false;
-    }
-
-    // Set the size of the structure before using it.
-    me32.dwSize = sizeof( MODULEENTRY32 );
-
-    // Retrieve information about the first module,
-    // and exit if unsuccessful
-    if( !Module32First( hModuleSnap, &me32 ) )
-    {
-        CloseHandle( hModuleSnap );
-        return false;
-    }
-
-    // Now walk the module list of the process,
-    // and display information about each module
-
-    //the first is always the .exe
-    if (!Module32Next(hModuleSnap, &me32))
-    {
-        CloseHandle( hModuleSnap );
-        return false;
-    }
+    WCHAR filename[MAX_PATH*2] = {0};
+    DWORD cbNeeded = 0;
+    bool retVal = false;
+    DeviceNameResolver deviceNameResolver;
 
     moduleList.reserve(20);
 
-    do
+    EnumProcessModules(hProcess, 0, 0, &cbNeeded);
+
+    HMODULE* hMods=(HMODULE*)malloc(cbNeeded*sizeof(HMODULE));
+
+    if (hMods)
     {
-        //printf(L"\n     MODULE NAME:     %s",   me32.szModule);
-        module.modBaseAddr = (DWORD_PTR)me32.modBaseAddr;
-        module.modBaseSize = me32.modBaseSize;
-        module.isAlreadyParsed = false;
-        module.parsing = false;
-        wcscpy_s(module.fullPath, me32.szExePath);
+        if(EnumProcessModules(hProcess, hMods, cbNeeded, &cbNeeded))
+        {
+            for(unsigned int i = 1; i < (cbNeeded/sizeof(HMODULE)); i++) //skip first module!
+            {
+                module.modBaseAddr = (DWORD_PTR)hMods[i];
+                module.modBaseSize = (DWORD)getSizeOfImageProcess(hProcess, module.modBaseAddr);
+                module.isAlreadyParsed = false;
+                module.parsing = false;
 
-        moduleList.push_back(module);
+                filename[0] = 0;
+                if (GetMappedFileNameW(hProcess, (LPVOID)module.modBaseAddr, filename, _countof(filename)) > 0)
+                {
+                    deviceNameResolver.resolveDeviceLongNameToShort(filename, module.fullPath);
+                }
 
-    } while(Module32Next(hModuleSnap, &me32));
+                moduleList.push_back(module);
+            }
 
-    CloseHandle( hModuleSnap );
-    return true;
+            retVal = true;
+        }
+
+        free(hMods);
+    }
+
+    return retVal;
 }
 
 bool ProcessAccessHelp::getMemoryRegionFromAddress(DWORD_PTR address, DWORD_PTR * memoryRegionBase, SIZE_T * memoryRegionSize)
@@ -737,18 +728,28 @@ bool ProcessAccessHelp::getSizeOfImageCurrentProcess()
 
 SIZE_T ProcessAccessHelp::getSizeOfImageProcess(HANDLE processHandle, DWORD_PTR moduleBase)
 {
-    SIZE_T sizeOfImage = 0;
+    SIZE_T sizeOfImage = 0, sizeOfImageNative = 0;
     MEMORY_BASIC_INFORMATION lpBuffer = {0};
-    SIZE_T dwLength = sizeof(MEMORY_BASIC_INFORMATION);
+
+    sizeOfImageNative = getSizeOfImageProcessNative(processHandle, moduleBase);
+
+    if (sizeOfImageNative)
+    {
+        return sizeOfImageNative;
+    }
+
+    WCHAR filenameOriginal[MAX_PATH*2] = {0};
+    WCHAR filenameTest[MAX_PATH*2] = {0};
+
+    GetMappedFileNameW(processHandle, (LPVOID)moduleBase, filenameOriginal, _countof(filenameOriginal));
 
     do
     {
         moduleBase = (DWORD_PTR)((SIZE_T)moduleBase + lpBuffer.RegionSize);
         sizeOfImage += lpBuffer.RegionSize;
 
-        //printf("Query 0x"PRINTF_DWORD_PTR_FULL" size 0x%08X\n",moduleBase,sizeOfImage);
 
-        if (!VirtualQueryEx(processHandle, (LPCVOID)moduleBase, &lpBuffer, dwLength))
+        if (!VirtualQueryEx(processHandle, (LPCVOID)moduleBase, &lpBuffer, sizeof(MEMORY_BASIC_INFORMATION)))
         {
 #ifdef DEBUG_COMMENTS
             Scylla::debugLog.log(L"getSizeOfImageProcess :: VirtualQuery failed %X", GetLastError());
@@ -756,19 +757,23 @@ SIZE_T ProcessAccessHelp::getSizeOfImageProcess(HANDLE processHandle, DWORD_PTR 
             lpBuffer.Type = 0;
             sizeOfImage = 0;
         }
-        /*else
+
+        GetMappedFileNameW(processHandle, (LPVOID)moduleBase, filenameTest, _countof(filenameTest));
+
+        if (_wcsicmp(filenameOriginal,filenameTest) != 0)//problem: 2 modules without free space
         {
-        	printf("\nAllocationBase %X\n",lpBuffer.AllocationBase);
-        	printf("AllocationProtect %X\n",lpBuffer.AllocationProtect);
-        	printf("BaseAddress %X\n",lpBuffer.BaseAddress);
-        	printf("Protect %X\n",lpBuffer.Protect);
-        	printf("RegionSize %X\n",lpBuffer.RegionSize);
-        	printf("State %X\n",lpBuffer.State);
-        	printf("Type %X\n",lpBuffer.Type);
-        }*/
+            break;
+        }
+
     } while (lpBuffer.Type == MEM_IMAGE);
 
-    //printf("Real sizeOfImage %X\n",sizeOfImage);
+
+    //if (sizeOfImage != sizeOfImageNative)
+    //{
+    //    WCHAR temp[1000] = {0};
+    //    wsprintfW(temp, L"0x%X sizeofimage\n0x%X sizeOfImageNative", sizeOfImage, sizeOfImageNative);
+    //    MessageBoxW(0, temp, L"Test", 0);
+    //}
 
     return sizeOfImage;
 }
@@ -879,4 +884,46 @@ bool ProcessAccessHelp::terminateProcess()
     }
 
     return false;
+}
+
+bool ProcessAccessHelp::isPageExecutable( DWORD Protect )
+{
+    if (Protect & PAGE_NOCACHE) Protect ^= PAGE_NOCACHE;
+    if (Protect & PAGE_GUARD) Protect ^= PAGE_GUARD;
+    if (Protect & PAGE_WRITECOMBINE) Protect ^= PAGE_WRITECOMBINE;
+
+    switch(Protect)
+    {
+    case PAGE_EXECUTE:
+    {
+        return true;
+    }
+    case PAGE_EXECUTE_READ:
+    {
+        return true;
+    }
+    case PAGE_EXECUTE_READWRITE:
+    {
+        return true;
+    }
+    case PAGE_EXECUTE_WRITECOPY:
+    {
+        return true;
+    }
+    default:
+        return false;
+    }
+
+}
+
+SIZE_T ProcessAccessHelp::getSizeOfImageProcessNative( HANDLE processHandle, DWORD_PTR moduleBase )
+{
+    MEMORY_REGION_INFORMATION memRegion = {0};
+    SIZE_T retLen = 0;
+    if (NativeWinApi::NtQueryVirtualMemory(processHandle, (PVOID)moduleBase, MemoryRegionInformation, &memRegion, sizeof(MEMORY_REGION_INFORMATION), &retLen) == STATUS_SUCCESS)
+    {
+        return memRegion.RegionSize;
+    }
+
+    return 0;
 }

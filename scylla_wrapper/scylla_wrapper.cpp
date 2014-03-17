@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImportRebuilder.h"
 #include "IATSearch.h"
 #include "StringConversion.h"
+#include "SystemInformation.h"
 
 static std::map<DWORD_PTR, ImportModuleThunk> moduleList;
 static int moduleCount = 0;
@@ -64,9 +65,12 @@ extern "C" SCYLLA_WRAPPER_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStar
     IATSearch iatSearch;
     ProcessLister processLister;
 
+    NativeWinApi::initialize();
+    SystemInformation::getSystemInformation();
+
     //need to find correct process by PID
     Process *processPtr = 0;
-    std::vector<Process>& processList = processLister.getProcessListSnapshot();
+    std::vector<Process>& processList = processLister.getProcessListSnapshotNative();
     for(std::vector<Process>::iterator it = processList.begin(); it != processList.end(); ++it) {
         if(it->PID == pid) {
             processPtr = &(*it);
@@ -85,7 +89,7 @@ extern "C" SCYLLA_WRAPPER_API int scylla_searchIAT(DWORD pid, DWORD_PTR &iatStar
         return SCY_ERROR_PROCOPEN;
     }
 
-    ProcessAccessHelp::getProcessModules(processPtr->PID, ProcessAccessHelp::moduleList);
+    ProcessAccessHelp::getProcessModules(ProcessAccessHelp::hProcess, ProcessAccessHelp::moduleList);
 
     ProcessAccessHelp::selectedModule = 0;
     ProcessAccessHelp::targetSizeOfImage = ProcessAccessHelp::getSizeOfImageProcess(ProcessAccessHelp::hProcess, ProcessAccessHelp::targetImageBase);
@@ -146,9 +150,12 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iat
     typedef void*(*fCallback)(LPVOID invalidImport);
     fCallback myCallback = (fCallback)invalidImportCallback;
 
+    NativeWinApi::initialize();
+    SystemInformation::getSystemInformation();
+
     //need to find correct process by PID
     Process *processPtr = 0;
-    std::vector<Process>& processList = processLister.getProcessListSnapshot();
+    std::vector<Process>& processList = processLister.getProcessListSnapshotNative();
     for(std::vector<Process>::iterator it = processList.begin(); it != processList.end(); ++it) {
         if(it->PID == pid) {
             processPtr = &(*it);
@@ -167,7 +174,7 @@ extern "C" SCYLLA_WRAPPER_API int scylla_getImports(DWORD_PTR iatAddr, DWORD iat
         return SCY_ERROR_PROCOPEN;
     }
 
-    ProcessAccessHelp::getProcessModules(processPtr->PID, ProcessAccessHelp::moduleList);
+    ProcessAccessHelp::getProcessModules(ProcessAccessHelp::hProcess, ProcessAccessHelp::moduleList);
 
     ProcessAccessHelp::selectedModule = 0;
     ProcessAccessHelp::targetSizeOfImage = ProcessAccessHelp::getSizeOfImageProcess(ProcessAccessHelp::hProcess, ProcessAccessHelp::targetImageBase);

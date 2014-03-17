@@ -124,7 +124,7 @@ public:
     /*
      * Get all modules from a process
      */
-    static bool getProcessModules(DWORD dwPID, std::vector<ModuleInfo> &moduleList);
+    static bool getProcessModules(HANDLE hProcess, std::vector<ModuleInfo> &moduleList);
 
 
     /*
@@ -224,4 +224,6 @@ public:
     static bool suspendProcess();
     static bool resumeProcess();
     static bool terminateProcess();
+    static bool isPageExecutable( DWORD Protect );
+    static SIZE_T getSizeOfImageProcessNative( HANDLE processHandle, DWORD_PTR moduleBase );
 };

@@ -21,53 +21,53 @@ def_RtlNtStatusToDosError NativeWinApi::RtlNtStatusToDosError = 0;
 
 void NativeWinApi::initialize()
 {
-	HMODULE hModuleNtdll = GetModuleHandle(L"ntdll.dll");
+    HMODULE hModuleNtdll = GetModuleHandle(L"ntdll.dll");
 
-	if (!hModuleNtdll)
-	{
-		return;
-	}
+    if (!hModuleNtdll)
+    {
+        return;
+    }
 
-	NtCreateThreadEx = (def_NtCreateThreadEx)GetProcAddress(hModuleNtdll, "NtCreateThreadEx");
-	NtDuplicateObject = (def_NtDuplicateObject)GetProcAddress(hModuleNtdll, "NtDuplicateObject");
-	NtOpenProcess = (def_NtOpenProcess)GetProcAddress(hModuleNtdll, "NtOpenProcess");
-	NtOpenThread = (def_NtOpenThread)GetProcAddress(hModuleNtdll, "NtOpenThread");
-	NtQueryObject = (def_NtQueryObject)GetProcAddress(hModuleNtdll, "NtQueryObject");
-	NtQueryInformationFile = (def_NtQueryInformationFile)GetProcAddress(hModuleNtdll, "NtQueryInformationFile");
-	NtQueryInformationProcess = (def_NtQueryInformationProcess)GetProcAddress(hModuleNtdll, "NtQueryInformationProcess");
-	NtQueryInformationThread = (def_NtQueryInformationThread)GetProcAddress(hModuleNtdll, "NtQueryInformationThread");
-	NtQuerySystemInformation = (def_NtQuerySystemInformation)GetProcAddress(hModuleNtdll, "NtQuerySystemInformation");
-	NtQueryVirtualMemory = (def_NtQueryVirtualMemory)GetProcAddress(hModuleNtdll, "NtQueryVirtualMemory");
-	NtResumeProcess = (def_NtResumeProcess)GetProcAddress(hModuleNtdll, "NtResumeProcess");
-	NtResumeThread = (def_NtResumeThread)GetProcAddress(hModuleNtdll, "NtResumeThread");
-	NtSetInformationThread = (def_NtSetInformationThread)GetProcAddress(hModuleNtdll, "NtSetInformationThread");
-	NtSuspendProcess = (def_NtSuspendProcess)GetProcAddress(hModuleNtdll, "NtSuspendProcess");
-	NtTerminateProcess = (def_NtTerminateProcess)GetProcAddress(hModuleNtdll, "NtTerminateProcess");
+    NtCreateThreadEx = (def_NtCreateThreadEx)GetProcAddress(hModuleNtdll, "NtCreateThreadEx");
+    NtDuplicateObject = (def_NtDuplicateObject)GetProcAddress(hModuleNtdll, "NtDuplicateObject");
+    NtOpenProcess = (def_NtOpenProcess)GetProcAddress(hModuleNtdll, "NtOpenProcess");
+    NtOpenThread = (def_NtOpenThread)GetProcAddress(hModuleNtdll, "NtOpenThread");
+    NtQueryObject = (def_NtQueryObject)GetProcAddress(hModuleNtdll, "NtQueryObject");
+    NtQueryInformationFile = (def_NtQueryInformationFile)GetProcAddress(hModuleNtdll, "NtQueryInformationFile");
+    NtQueryInformationProcess = (def_NtQueryInformationProcess)GetProcAddress(hModuleNtdll, "NtQueryInformationProcess");
+    NtQueryInformationThread = (def_NtQueryInformationThread)GetProcAddress(hModuleNtdll, "NtQueryInformationThread");
+    NtQuerySystemInformation = (def_NtQuerySystemInformation)GetProcAddress(hModuleNtdll, "NtQuerySystemInformation");
+    NtQueryVirtualMemory = (def_NtQueryVirtualMemory)GetProcAddress(hModuleNtdll, "NtQueryVirtualMemory");
+    NtResumeProcess = (def_NtResumeProcess)GetProcAddress(hModuleNtdll, "NtResumeProcess");
+    NtResumeThread = (def_NtResumeThread)GetProcAddress(hModuleNtdll, "NtResumeThread");
+    NtSetInformationThread = (def_NtSetInformationThread)GetProcAddress(hModuleNtdll, "NtSetInformationThread");
+    NtSuspendProcess = (def_NtSuspendProcess)GetProcAddress(hModuleNtdll, "NtSuspendProcess");
+    NtTerminateProcess = (def_NtTerminateProcess)GetProcAddress(hModuleNtdll, "NtTerminateProcess");
 
-	RtlNtStatusToDosError = (def_RtlNtStatusToDosError)GetProcAddress(hModuleNtdll, "RtlNtStatusToDosError");
+    RtlNtStatusToDosError = (def_RtlNtStatusToDosError)GetProcAddress(hModuleNtdll, "RtlNtStatusToDosError");
 
 }
 
 
 PPEB NativeWinApi::getCurrentProcessEnvironmentBlock()
 {
-	return getProcessEnvironmentBlockAddress(GetCurrentProcess());
+    return getProcessEnvironmentBlockAddress(GetCurrentProcess());
 }
 
 PPEB NativeWinApi::getProcessEnvironmentBlockAddress(HANDLE processHandle)
 {
-	ULONG lReturnLength = 0;
-	PROCESS_BASIC_INFORMATION processBasicInformation;
+    ULONG lReturnLength = 0;
+    PROCESS_BASIC_INFORMATION processBasicInformation;
 
-	if ((NtQueryInformationProcess(processHandle,ProcessBasicInformation,&processBasicInformation,sizeof(PROCESS_BASIC_INFORMATION),&lReturnLength) >= 0) && (lReturnLength == sizeof(PROCESS_BASIC_INFORMATION)))
-	{
-		//printf("NtQueryInformationProcess success %d\n",sizeof(PROCESS_BASIC_INFORMATION));
+    if ((NtQueryInformationProcess(processHandle,ProcessBasicInformation,&processBasicInformation,sizeof(PROCESS_BASIC_INFORMATION),&lReturnLength) >= 0) && (lReturnLength == sizeof(PROCESS_BASIC_INFORMATION)))
+    {
+        //printf("NtQueryInformationProcess success %d\n",sizeof(PROCESS_BASIC_INFORMATION));
 
-		return processBasicInformation.PebBaseAddress;
-	}
-	else
-	{
-		//printf("NtQueryInformationProcess failed %d vs %d\n",lReturnLength,sizeof(PROCESS_BASIC_INFORMATION));
-		return 0;
-	}
+        return processBasicInformation.PebBaseAddress;
+    }
+    else
+    {
+        //printf("NtQueryInformationProcess failed %d vs %d\n",lReturnLength,sizeof(PROCESS_BASIC_INFORMATION));
+        return 0;
+    }
 }
