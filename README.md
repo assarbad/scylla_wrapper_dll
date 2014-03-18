@@ -5,7 +5,6 @@ It exports functions for IAT fixing, dumping and PE rebuilding.
 based on http://github.com/NtQuery/Scylla commit e548a1ce42  (v0.9.5)
 
 What has been changed:
-- Native API calls (Nt*) replaced by WinAPI calls
 - stripped all WTL/ATL dependencies
 - stripped GUI (obviously)
 ```
