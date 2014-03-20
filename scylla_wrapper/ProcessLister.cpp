@@ -30,7 +30,7 @@ bool ProcessLister::isWindows64()
     if (_IsWow64Process)
     {
         _IsWow64Process(GetCurrentProcess(), &bIsWow64);
-        if (bIsWow64 == TRUE)
+        if (bIsWow64 != FALSE)
         {
             return true;
         }

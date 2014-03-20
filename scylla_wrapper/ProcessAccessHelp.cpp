@@ -675,9 +675,21 @@ bool ProcessAccessHelp::getProcessModules(HANDLE hProcess, std::vector<ModuleInf
                 module.parsing = false;
 
                 filename[0] = 0;
+                module.fullPath[0] = 0;
+
                 if (GetMappedFileNameW(hProcess, (LPVOID)module.modBaseAddr, filename, _countof(filename)) > 0)
                 {
-                    deviceNameResolver.resolveDeviceLongNameToShort(filename, module.fullPath);
+                    if (!deviceNameResolver.resolveDeviceLongNameToShort(filename, module.fullPath))
+                    {
+                        if (!GetModuleFileNameExW(hProcess, (HMODULE)module.modBaseAddr, module.fullPath, _countof(module.fullPath)))
+                        {
+                            wcscpy_s(module.fullPath, filename);
+                        }
+                    }
+                }
+                else
+                {
+                    GetModuleFileNameExW(hProcess, (HMODULE)module.modBaseAddr, module.fullPath, _countof(module.fullPath));
                 }
 
                 moduleList.push_back(module);

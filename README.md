@@ -2,7 +2,7 @@
 This is a wrapper around Scylla. 
 It exports functions for IAT fixing, dumping and PE rebuilding.
 
-based on http://github.com/NtQuery/Scylla commit e548a1ce42  (v0.9.5)
+based on http://github.com/NtQuery/Scylla commit fba6ea97c1  (v0.9.5a)
 
 What has been changed:
 - stripped all WTL/ATL dependencies
