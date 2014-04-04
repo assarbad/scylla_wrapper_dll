@@ -3,6 +3,7 @@
 #include "Architecture.h"
 #include "SystemInformation.h"
 #include "StringConversion.h"
+#include "PeParser.h"
 
 stdext::hash_multimap<DWORD_PTR, ApiInfo *> ApiReader::apiList; //api look up table
 std::map<DWORD_PTR, ImportModuleThunk> *  ApiReader::moduleThunkList; //store found apis
@@ -14,6 +15,9 @@ DWORD_PTR ApiReader::maxApiAddress = 0;
 
 void ApiReader::readApisFromModuleList()
 {
+
+    readExportTableAlwaysFromDisk = true;
+
     for (unsigned int i = 0; i < moduleList.size(); i++)
     {
         setModulePriority(&moduleList[i]);
@@ -50,7 +54,14 @@ void ApiReader::parseModule(ModuleInfo *module)
     }
     else
     {
-        parseModuleWithProcess(module);
+        if (readExportTableAlwaysFromDisk)
+        {
+            parseModuleWithMapping(module);
+        }
+        else
+        {
+            parseModuleWithProcess(module);
+        }
     }
 
     module->isAlreadyParsed = true;
@@ -121,8 +132,8 @@ void ApiReader::handleForwardedApi(DWORD_PTR vaStringPointer,char * functionName
 
     searchFunctionName++;
 
-    //Windows 7
-    if (!strncmp(dllName,"api-ms-win-", 11))
+    //Since Windows 7
+    if (!_strnicmp(dllName, "API-", 4) || !_strnicmp(dllName, "EXT-", 4)) //API_SET_PREFIX_NAME, API_SET_EXTENSION
     {
         /*
             Info: http://www.nirsoft.net/articles/windows_7_kernel_architecture_changes.html
@@ -288,6 +299,14 @@ BYTE * ApiReader::getExportTableFromProcess(ModuleInfo * module, PIMAGE_NT_HEADE
     {
         bufferExportTable = new BYTE[readSize];
 
+        if (!bufferExportTable)
+        {
+#ifdef DEBUG_COMMENTS
+            Scylla::debugLog.log(L"Something is wrong with the PE Header here Export table size %d", readSize);
+#endif
+            return 0;
+        }
+
         if(!readMemoryFromProcess(module->modBaseAddr + pNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress, readSize, bufferExportTable))
         {
 #ifdef DEBUG_COMMENTS
@@ -313,17 +332,14 @@ void ApiReader::parseModuleWithProcess(ModuleInfo * module)
     PIMAGE_DOS_HEADER pDosHeader = 0;
     BYTE *bufferHeader = 0;
     BYTE *bufferExportTable = 0;
+    PeParser peParser(module->modBaseAddr, false);
 
-
-    bufferHeader = getHeaderFromProcess(module);
-
-    if (bufferHeader == 0)
+    if (!peParser.isValidPeFile())
         return;
 
-    pDosHeader = (PIMAGE_DOS_HEADER)bufferHeader;
-    pNtHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)bufferHeader + (DWORD_PTR)(pDosHeader->e_lfanew));
+    pNtHeader = peParser.getCurrentNtHeader();
 
-    if (isPeAndExportTableValid(pNtHeader))
+    if (peParser.hasExportDirectory())
     {
         bufferExportTable = getExportTableFromProcess(module, pNtHeader);
 
@@ -333,8 +349,6 @@ void ApiReader::parseModuleWithProcess(ModuleInfo * module)
             delete[] bufferExportTable;
         }
     }
-
-    delete[] bufferHeader;
 }
 
 void ApiReader::parseExportTable(ModuleInfo *module, PIMAGE_NT_HEADERS pNtHeader, PIMAGE_EXPORT_DIRECTORY pExportDir, DWORD_PTR deltaAddress)
@@ -620,6 +634,10 @@ void ApiReader::setModulePriority(ModuleInfo * module)
     else if (!_wcsicmp(moduleFileName, L"kernel32.dll"))
     {
         module->priority = 2;
+    }
+    else if (!_wcsnicmp(moduleFileName, L"API-", 4) || !_wcsnicmp(moduleFileName, L"EXT-", 4)) //API_SET_PREFIX_NAME, API_SET_EXTENSION
+    {
+        module->priority = 0;
     }
     else
     {
@@ -1183,7 +1201,7 @@ bool ApiReader::isInvalidMemoryForIat( DWORD_PTR address )
 
     if (VirtualQueryEx(ProcessAccessHelp::hProcess, (LPCVOID)address, &memBasic, sizeof(MEMORY_BASIC_INFORMATION)))
     {
-        if((memBasic.State == MEM_COMMIT) && ProcessAccessHelp::isPageExecutable(memBasic.Protect))
+        if((memBasic.State == MEM_COMMIT) && ProcessAccessHelp::isPageAccessable(memBasic.Protect))
         {
             return false;
         }
