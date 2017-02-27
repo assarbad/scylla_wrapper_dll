@@ -549,6 +549,10 @@ BOOL DumpProcessW(const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entry
 
 extern "C" SCYLLA_WRAPPER_API bool scylla_dumpProcessW(DWORD_PTR pid, const WCHAR * fileToDump, DWORD_PTR imagebase, DWORD_PTR entrypoint, const WCHAR * fileResult)
 {
+    //BUGFiX: You need to initialize native WinAPIs before you can actually call them.
+    //Without this line of code you need to call some other dummy function in order to dump.
+    
+    NativeWinApi::initialize();
     if (ProcessAccessHelp::openProcessHandle((DWORD)pid))
     {
         return DumpProcessW(fileToDump, imagebase, entrypoint, fileResult);
